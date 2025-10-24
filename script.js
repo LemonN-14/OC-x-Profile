@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             sidebarProfileName.textContent = userProfile.name;
             sidebarProfileNickname.textContent = userProfile.nickname ? `(${userProfile.nickname})` : '';
-            sidebarProfileAge.textContent = userProfile.age === 'under18' ? 'Under 18' : '18↑';
+            sidebarProfileAge.textContent = userProfile.age === '18↓' ? 'Under 18' : '18↑';
         } else {
             sidebarProfileImage.innerHTML = '<i class="fas fa-user-circle"></i>';
             sidebarProfileName.textContent = 'Guest';
