@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const addCharacterBtn = document.getElementById('addCharacterBtn');
     const addCharacterModal = document.getElementById('addCharacterModal');
+    const characterModalTitle = document.getElementById('characterModalTitle');
     const closeButtons = document.querySelectorAll('.close-button');
     const characterForm = document.getElementById('characterForm');
     const characterImageInput = document.getElementById('characterImage');
@@ -33,9 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const editProfileBtn = document.getElementById('editProfileBtn');
     const feedbackBtn = document.getElementById('feedbackBtn');
 
-    // New: Edit Mode Elements
+    // Edit Mode Elements
     const editModeToggle = document.getElementById('editModeToggle');
     let isEditMode = false; // State for edit mode
+    let editingCharacterId = null; // To store the ID of the character being edited
 
     let characters = JSON.parse(localStorage.getItem('characters')) || []; // Load characters from local storage
     let userProfile = JSON.parse(localStorage.getItem('userProfile')) || null;
@@ -48,6 +50,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (word.length === 0) return '';
             return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
         }).join(' ');
+    }
+
+    // Function to parse full name back into parts (best effort)
+    function parseFullName(fullName) {
+        const parts = fullName.split(' ').filter(Boolean);
+        let firstName = '';
+        let middleName = '';
+        let lastName = '';
+
+        if (parts.length === 1) {
+            firstName = parts[0];
+        } else if (parts.length === 2) {
+            firstName = parts[0];
+            lastName = parts[1];
+        } else if (parts.length >= 3) {
+            firstName = parts[0];
+            middleName = parts.slice(1, -1).join(' '); // All parts between first and last
+            lastName = parts[parts.length - 1];
+        }
+        return { firstName, middleName, lastName };
     }
 
     // --- User Profile Functions ---
@@ -84,6 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeProfileModal() {
+        // Prevent closing if it's the initial setup
+        if (isInitialProfileSetup) {
+            return;
+        }
         userProfileModal.style.display = 'none';
     }
 
@@ -126,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             localStorage.setItem('userProfile', JSON.stringify(userProfile)); // Save to local storage
             updateSidebarProfile();
-            closeProfileModal();
+            closeProfileModal(); // This will now properly close the modal
             isInitialProfileSetup = false;
         };
 
@@ -159,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             sidebarProfileName.textContent = userProfile.name;
             sidebarProfileNickname.textContent = userProfile.nickname ? `(${userProfile.nickname})` : '';
-            sidebarProfileAge.textContent = userProfile.age === 'under18' ? 'Under 18' : '18 or Over';
+            sidebarProfileAge.textContent = userProfile.age === 'under18' ? 'Under 18' : '18↑';
         } else {
             sidebarProfileImage.innerHTML = '<i class="fas fa-user-circle"></i>';
             sidebarProfileName.textContent = 'Guest';
@@ -184,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <img src="${character.image}" alt="${capitalizedName}">
                 <p>${capitalizedName}</p>
                 <button class="delete-character-btn ${isEditMode ? 'active' : ''}">-</button>
+                <button class="edit-character-btn ${isEditMode ? 'active' : ''}"><i class="fas fa-pencil-alt"></i></button>
             `;
             characterContainer.appendChild(characterCard);
         });
@@ -195,6 +222,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteCharacter(charId);
             });
         });
+
+        // Attach event listeners for edit buttons (after rendering)
+        document.querySelectorAll('.edit-character-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const charId = event.target.closest('.character-card').dataset.id;
+                openEditCharacterModal(charId);
+            });
+        });
     }
 
     // Function to delete a character
@@ -202,6 +237,32 @@ document.addEventListener('DOMContentLoaded', () => {
         characters = characters.filter(char => char.id != id); // Filter out the deleted character
         localStorage.setItem('characters', JSON.stringify(characters)); // Update local storage
         renderCharacters(); // Re-render characters
+    }
+
+    // Function to open the character modal for editing
+    function openEditCharacterModal(id) {
+        editingCharacterId = id;
+        const character = characters.find(char => char.id == id);
+
+        if (character) {
+            characterModalTitle.textContent = 'Edit Character'; // Change modal title
+            saveCharacterBtn.textContent = 'Update Character'; // Change button text
+            addCharacterModal.style.display = 'flex';
+
+            // Populate form fields
+            const { firstName, middleName, lastName } = parseFullName(character.name);
+            characterFirstNameInput.value = firstName;
+            characterMiddleNameInput.value = middleName;
+            characterLastNameInput.value = lastName;
+            
+            // Display current image
+            if (character.image) {
+                imagePreview.innerHTML = `<img src="${character.image}" alt="Image Preview">`;
+            } else {
+                imagePreview.innerHTML = '';
+            }
+            characterImageInput.value = ''; // Clear file input for new selection
+        }
     }
 
     // --- Event Listeners ---
@@ -215,20 +276,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Open Add Character Modal
     addCharacterBtn.addEventListener('click', () => {
+        editingCharacterId = null; // Clear editing state
+        characterModalTitle.textContent = 'Add New Character'; // Reset modal title
+        saveCharacterBtn.textContent = 'Save Character'; // Reset button text
         addCharacterModal.style.display = 'flex';
         characterForm.reset();
         imagePreview.innerHTML = '';
-        imagePreview.style.backgroundImage = 'none';
+        imagePreview.style.backgroundImage = 'none'; // Ensure no background image
     });
 
     // Close Modals using the 'X' button
     closeButtons.forEach(button => {
         button.addEventListener('click', () => {
             const modalId = button.dataset.modal;
-            if (modalId === 'userProfileModal' && isInitialProfileSetup) {
-                return;
+            if (modalId === 'userProfileModal') { // Check if it's the user profile modal
+                closeProfileModal(); // Use the closeProfileModal function
+            } else {
+                document.getElementById(modalId).style.display = 'none';
             }
-            document.getElementById(modalId).style.display = 'none';
         });
     });
 
@@ -237,8 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target == addCharacterModal) {
             addCharacterModal.style.display = 'none';
         }
-        if (event.target == userProfileModal && !isInitialProfileSetup) {
-            userProfileModal.style.display = 'none';
+        // Use closeProfileModal for consistency
+        if (event.target == userProfileModal) {
+            closeProfileModal();
         }
         if (sidebar.classList.contains('active') && !sidebar.contains(event.target) && event.target !== menuIcon && event.target !== editModeToggle && event.target !== addCharacterBtn) {
             closeSidebar();
@@ -256,10 +322,17 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.readAsDataURL(file);
         } else {
             imagePreview.innerHTML = '';
+            // If no file selected, and we are editing, show the old image again
+            if (editingCharacterId) {
+                const character = characters.find(char => char.id == editingCharacterId);
+                if (character && character.image) {
+                     imagePreview.innerHTML = `<img src="${character.image}" alt="Image Preview">`;
+                }
+            }
         }
     });
 
-    // Handle saving a new character
+    // Handle saving a new character or updating an existing one
     characterForm.addEventListener('submit', (event) => {
         event.preventDefault();
 
@@ -273,30 +346,56 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!imageFile) {
-            alert('Please select a character image.');
-            return;
-        }
-
         const fullNameParts = [firstName, middleName, lastName].filter(Boolean);
         const fullName = fullNameParts.join(' ');
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const imageUrl = e.target.result;
-            const newCharacter = {
-                id: Date.now(), // Unique ID for each character
-                name: fullName,
-                image: imageUrl
-            };
-            characters.push(newCharacter);
-            localStorage.setItem('characters', JSON.stringify(characters)); // Save to local storage
+        // Function to save/update character data
+        const saveCharacterData = (imageUrl) => {
+            if (editingCharacterId) {
+                // Update existing character
+                characters = characters.map(char => {
+                    if (char.id == editingCharacterId) {
+                        return { ...char, name: fullName, image: imageUrl };
+                    }
+                    return char;
+                });
+            } else {
+                // Add new character
+                if (!imageUrl) { // Only check for image on new character creation
+                    alert('Please select a character image.');
+                    return;
+                }
+                const newCharacter = {
+                    id: Date.now(),
+                    name: fullName,
+                    image: imageUrl
+                };
+                characters.push(newCharacter);
+            }
+            localStorage.setItem('characters', JSON.stringify(characters));
             renderCharacters();
             addCharacterModal.style.display = 'none';
             characterForm.reset();
             imagePreview.innerHTML = '';
+            editingCharacterId = null; // Clear editing state after save
         };
-        reader.readAsDataURL(imageFile);
+
+        if (imageFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                saveCharacterData(e.target.result);
+            };
+            reader.readAsDataURL(imageFile);
+        } else {
+            // If no new image selected during edit, use the existing image
+            if (editingCharacterId) {
+                const existingCharacter = characters.find(char => char.id == editingCharacterId);
+                saveCharacterData(existingCharacter ? existingCharacter.image : null);
+            } else {
+                // If adding a new character and no image file, alert
+                saveCharacterData(null); // This will potentially trigger the alert inside saveCharacterData for new characters
+            }
+        }
     });
 
     // Sidebar event listeners
@@ -312,11 +411,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open('https://forms.gle/m1WiWmdJSwUxPcLPA', '_blank');
     });
 
-    // New: Edit Mode Toggle
+    // Edit Mode Toggle
     editModeToggle.addEventListener('click', () => {
-        isEditMode = !isEditMode; // Toggle edit mode state
-        // Toggle active class on delete buttons for all characters
+        isEditMode = !isEditMode;
         document.querySelectorAll('.delete-character-btn').forEach(button => {
+            if (isEditMode) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+        document.querySelectorAll('.edit-character-btn').forEach(button => {
             if (isEditMode) {
                 button.classList.add('active');
             } else {
@@ -325,5 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    renderCharacters(); // Initial render for characters
+    // Initial render of characters when the page loads
+    renderCharacters();
 });

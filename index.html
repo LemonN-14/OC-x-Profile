@@ -25,7 +25,7 @@
             <p id="sidebarProfileName" class="profile-name"></p>
             <p id="sidebarProfileNickname" class="profile-nickname"></p>
             <p id="sidebarProfileAge" class="profile-age"></p>
-            <button id="editProfileBtn" class="edit-profile-btn">Edit Profile</button>
+            <button id="editProfileBtn" class="edit-profile-btn">Edit</button>
         </div>
         <button id="feedbackBtn" class="feedback-btn">
             <i class="fas fa-comment-alt"></i> Feedback
@@ -38,14 +38,14 @@
 
     <!-- Beta Version Text -->
     <div class="version-info">
-        Beta_Test 0.0.1
+        Beta_Test 0.0.2
     </div>
 
-    <!-- Add Character Modal -->
+    <!-- Add/Edit Character Modal -->
     <div id="addCharacterModal" class="modal">
         <div class="modal-content">
             <span class="close-button" data-modal="addCharacterModal">&times;</span>
-            <h2>Add New Character</h2>
+            <h2 id="characterModalTitle">Add New Character</h2>
             <form id="characterForm">
                 <div class="form-group">
                     <label for="characterImage">Character Image:</label>
@@ -73,7 +73,7 @@
     <div id="userProfileModal" class="modal">
         <div class="modal-content">
             <span class="close-button" id="closeProfileModal" data-modal="userProfileModal">&times;</span>
-            <h2>User Profile</h2>
+            <h2>My Profile</h2>
             <form id="userProfileForm">
                 <div class="form-group">
                     <label for="profileImageInput">Profile Image:</label>
@@ -92,12 +92,12 @@
                     <label>Age:</label>
                     <div class="radio-group">
                         <input type="radio" id="ageUnder18" name="profileAge" value="under18">
-                        <label for="ageUnder18">Under 18</label>
+                        <label for="ageUnder18">18↓</label>
                         <input type="radio" id="ageOver18" name="profileAge" value="over18">
-                        <label for="ageOver18">18 or Over</label>
+                        <label for="ageOver18">18↑</label>
                     </div>
                 </div>
-                <button type="submit" id="saveProfileBtn">Save Profile</button>
+                <button type="submit" id="saveProfileBtn">Save</button>
             </form>
         </div>
     </div>
