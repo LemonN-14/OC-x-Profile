@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // =================================================================
-    // ========== STEP 1: FIREBASE CONFIGURATION =======================
+    // ========== FIREBASE CONFIGURATION ===============================
     // =================================================================
     // **** วาง `firebaseConfig` ที่คุณคัดลอกจากเว็บไซต์ Firebase ที่นี่ ****
     const firebaseConfig = {
@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
   measurementId: "G-5946FF6TWD"
 };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -111,26 +110,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    authForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (isResetMode) return;
-        
+    loginBtn.addEventListener('click', () => {
         const email = authEmailInput.value;
         const password = authPasswordInput.value;
+        if (!email || !password) {
+            authError.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน';
+            return;
+        }
+        authError.textContent = '';
+        auth.signInWithEmailAndPassword(email, password)
+            .catch(error => {
+                switch (error.code) {
+                    case 'auth/user-not-found': authError.textContent = 'ไม่พบผู้ใช้อีเมลนี้'; break;
+                    case 'auth/wrong-password': authError.textContent = 'รหัสผ่านไม่ถูกต้อง'; break;
+                    default: authError.textContent = 'เกิดข้อผิดพลาด: ' + error.message;
+                }
+            });
+    });
 
-        const action = isLoginMode 
-            ? auth.signInWithEmailAndPassword(email, password)
-            : auth.createUserWithEmailAndPassword(email, password);
-        
-        action.catch(error => {
-            switch (error.code) {
-                case 'auth/user-not-found': authError.textContent = 'ไม่พบผู้ใช้อีเมลนี้'; break;
-                case 'auth/wrong-password': authError.textContent = 'รหัสผ่านไม่ถูกต้อง'; break;
-                case 'auth/email-already-in-use': authError.textContent = 'อีเมลนี้ถูกใช้งานแล้ว'; break;
-                case 'auth/weak-password': authError.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; break;
-                default: authError.textContent = 'เกิดข้อผิดพลาด: ' + error.message;
-            }
-        });
+    signupBtn.addEventListener('click', () => {
+        const email = authEmailInput.value;
+        const password = authPasswordInput.value;
+        if (!email || !password) {
+            authError.textContent = 'กรุณากรอกอีเมลและรหัสผ่าน';
+            return;
+        }
+        authError.textContent = '';
+        auth.createUserWithEmailAndPassword(email, password)
+            .catch(error => {
+                switch (error.code) {
+                    case 'auth/email-already-in-use': authError.textContent = 'อีเมลนี้ถูกใช้งานแล้ว'; break;
+                    case 'auth/weak-password': authError.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; break;
+                    default: authError.textContent = 'เกิดข้อผิดพลาด: ' + error.message;
+                }
+            });
     });
     
     resetPasswordBtn.addEventListener('click', () => {
@@ -152,6 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     : 'เกิดข้อผิดพลาด: ' + error.message;
             });
     });
+    
+    authForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+    });
 
     logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -164,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isLoginMode = true;
             isResetMode = false;
             updateAuthUI();
+            authForm.reset();
             authContainer.style.display = 'none';
             appContainer.style.display = 'block';
             sidebarUserEmail.textContent = user.email;
@@ -353,6 +371,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const closeBtn = modal.querySelector('.close-btn, #cancel-delete-btn');
         if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal));
+    });
+
+    // Setup image preview in add/edit modal
+    const charImageInput = document.getElementById('char-image-input');
+    charImageInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                imagePreviewBox.style.backgroundImage = `url('${event.target.result}')`;
+                imagePreviewBox.innerHTML = '';
+            };
+            reader.readAsDataURL(file);
+        }
     });
 
     // Initial UI setup
