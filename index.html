@@ -8,176 +8,138 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ========== NAVIGATION BAR ========== -->
-    <nav>
-        <div class="nav-left"><i class="fas fa-bars" id="hamburger-btn"></i></div>
-        <div class="nav-right">
-            <i class="fas fa-pencil-alt" id="toggle-edit-btn"></i>
-            <i class="fas fa-plus" id="add-char-btn"></i>
-        </div>
-    </nav>
 
-    <!-- ========== SIDEBAR ========== -->
-    <div class="sidebar" id="sidebar">
-        <div> <!-- Wrapper for top content -->
-            <div class="sidebar-header">
-                <i class="fas fa-user-circle"></i>
-                <span>User Profile</span>
-            </div>
-        </div>
-        <!-- Feedback link is now at the bottom -->
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdHEcU5PtZLMZz70pVrZKynPZLSX1RHaPRkYVt0Q76t3-c3qQ/viewform" target="_blank" class="sidebar-link">
-            <i class="fas fa-comment-alt"></i>
-            <span>Feedback</span>
-        </a>
-    </div>
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-
-    <!-- ========== HEADER ========== -->
-    <header><h1>OC x Profile</h1></header>
-
-    <!-- ========== MAIN CONTENT ========== -->
-    <main><div class="character-container" id="character-container"></div></main>
-
-    <!-- ========== MODALS ========== -->
-
-    <!-- 1. Add/Edit Modal -->
-    <div id="add-char-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2 id="modal-title">Create New Character</h2>
-            <form id="add-char-form">
-                <div id="name-image-section">
-                    <div class="image-uploader">
-                        <input type="file" id="char-image-input" accept="image/*" style="display: none;">
-                        <label for="char-image-input" class="image-preview" id="image-preview-box"><i class="fas fa-camera"></i><span>Add Photo</span></label>
-                    </div>
-                    <div class="form-group"><input type="text" id="first-name" placeholder="First Name"></div>
-                    <div class="form-group"><input type="text" id="middle-name" placeholder="Middle Name (Optional)"></div>
-                    <div class="form-group"><input type="text" id="last-name" placeholder="Last Name"></div>
+    <!-- ========== AUTHENTICATION CONTAINER ========== -->
+    <div id="auth-container">
+        <div class="auth-modal">
+            <h2 id="auth-title">เข้าสู่ระบบ</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <input type="email" id="auth-email" placeholder="อีเมล" required>
                 </div>
-                <div class="modal-tab-container">
-                    <div class="modal-tabs">
-                        <button type="button" class="tab-button active" data-tab="profile-tab">Profile</button>
-                        <button type="button" class="tab-button" data-tab="yumeship-tab">YumeShip</button>
-                    </div>
-                    <div class="tab-content active" id="profile-tab">
-                        <h4>Profile Details</h4>
-                        <div id="custom-fields-container"></div>
-                        <button type="button" id="add-field-btn">+ Add Detail</button>
-                        <div class="form-group" style="margin-top: 20px;">
-                            <label>Character Background</label>
-                            <textarea id="character-background" placeholder="ใส่ประวัติตัวละครที่นี่..."></textarea>
-                        </div>
-                    </div>
-                    <div class="tab-content" id="yumeship-tab">
-                        <div class="yumeship-toggle">
-                            <input type="checkbox" id="enable-yumeship">
-                            <label for="enable-yumeship">เปิดใช้งานหน้า YumeShip</label>
-                        </div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Ship Tag</label>
-                                <input type="text" id="yumeship-tag" placeholder="ชื่อคู่ชิป">
-                            </div>
-                            <div class="form-group">
-                                <label>Ship Images</label>
-                                <div class="ship-image-inputs">
-                                    <label class="ship-image-preview" id="yumeship-img-1-preview"><input type="file" id="yumeship-img-1-input" accept="image/*" hidden></label>
-                                    <i class="fas fa-heart"></i>
-                                    <label class="ship-image-preview" id="yumeship-img-2-preview"><input type="file" id="yumeship-img-2-input" accept="image/*" hidden></label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Details</label>
-                            <textarea id="yumeship-details" placeholder="ใส่รายละเอียด..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Theme Song</label>
-                            <div class="song-input-container">
-                                <label class="song-art-preview" id="yumeship-song-art-preview"><input type="file" id="yumeship-song-art-input" accept="image/*" hidden></label>
-                                <input type="text" id="yumeship-song-title" placeholder="ชื่อเพลง">
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group" id="password-group">
+                    <input type="password" id="auth-password" placeholder="รหัสผ่าน" required>
                 </div>
-                <button type="submit">Save Character</button>
+                
+                <p class="forgot-password-link"><a href="#" id="forgot-password-link">ลืมรหัสผ่าน?</a></p>
+
+                <p id="auth-error" class="auth-error"></p>
+                <p id="auth-success" class="auth-success"></p>
+
+                <button type="submit" id="login-btn">เข้าสู่ระบบ</button>
+                <button type="button" id="signup-btn" style="display: none;">สมัครสมาชิก</button>
+                <button type="button" id="reset-password-btn" style="display: none;">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
             </form>
+            <p class="auth-toggle-link">ยังไม่มีบัญชี? <a href="#" id="toggle-to-signup">สมัครสมาชิกที่นี่</a></p>
+            <p class="back-to-login-link" style="display: none;"><a href="#" id="back-to-login-link">กลับไปหน้าเข้าสู่ระบบ</a></p>
         </div>
     </div>
 
-    <!-- 2. Delete Confirmation Modal -->
-    <div id="delete-confirm-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>ยืนยันการลบ</h3>
-            <p>คุณต้องการลบตัวละครนี้ใช่หรือไม่?</p>
-            <div class="delete-modal-buttons">
-                <button id="confirm-delete-btn">ลบ</button>
-                <button id="cancel-delete-btn">ยกเลิก</button>
+    <!-- ========== MAIN APP CONTAINER (SHOWN WHEN LOGGED IN) ========== -->
+    <div id="app-container" style="display: none;">
+        <!-- ========== NAVIGATION BAR ========== -->
+        <nav>
+            <div class="nav-left"><i class="fas fa-bars" id="hamburger-btn"></i></div>
+            <div class="nav-right">
+                <i class="fas fa-pencil-alt" id="toggle-edit-btn"></i>
+                <i class="fas fa-plus" id="add-char-btn"></i>
             </div>
+        </nav>
+
+        <!-- ========== SIDEBAR ========== -->
+        <div class="sidebar" id="sidebar">
+            <div> <!-- Top content wrapper -->
+                <div class="sidebar-header">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="sidebar-user-email">User Profile</span>
+                </div>
+            </div>
+            <div> <!-- Bottom content wrapper -->
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdHEcU5PtZLMZz70pVrZKynPZLSX1RHaPRkYVt0Q76t3-c3qQ/viewform" target="_blank" class="sidebar-link">
+                    <i class="fas fa-comment-alt"></i>
+                    <span>Feedback</span>
+                </a>
+                 <a href="#" id="logout-btn" class="sidebar-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>ออกจากระบบ</span>
+                </a>
+            </div>
+        </div>
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- ========== HEADER ========== -->
+        <header><h1>OC x Profile</h1></header>
+
+        <!-- ========== MAIN CONTENT ========== -->
+        <main><div class="character-container" id="character-container"><p class="loading-text">กำลังโหลดข้อมูล...</p></div></main>
+
+        <!-- ========== MODALS ========== -->
+
+        <!-- 1. Add/Edit Modal -->
+        <div id="add-char-modal" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h2 id="modal-title">Create New Character</h2>
+                <form id="add-char-form">
+                    <div id="name-image-section">
+                        <div class="image-uploader">
+                            <input type="file" id="char-image-input" accept="image/*" style="display: none;">
+                            <label for="char-image-input" class="image-preview" id="image-preview-box"><i class="fas fa-camera"></i><span>Add Photo</span></label>
+                        </div>
+                        <div class="form-group"><input type="text" id="first-name" placeholder="First Name"></div>
+                        <div class="form-group"><input type="text" id="middle-name" placeholder="Middle Name (Optional)"></div>
+                        <div class="form-group"><input type="text" id="last-name" placeholder="Last Name"></div>
+                    </div>
+                    <div class="modal-tab-container">
+                        <div class="modal-tabs">
+                            <button type="button" class="tab-button active" data-tab="profile-tab">Profile</button>
+                            <button type="button" class="tab-button" data-tab="yumeship-tab">YumeShip</button>
+                        </div>
+                        <div class="tab-content active" id="profile-tab">
+                            <h4>Profile Details</h4>
+                            <div id="custom-fields-container"></div>
+                            <button type="button" id="add-field-btn">+ Add Detail</button>
+                            <div class="form-group" style="margin-top: 20px;">
+                                <label>Character Background</label>
+                                <textarea id="character-background" placeholder="ใส่ประวัติตัวละครที่นี่..."></textarea>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="yumeship-tab">
+                            <!-- เนื้อหาของ YumeShip สามารถเพิ่มได้ที่นี่ -->
+                        </div>
+                    </div>
+                    <button type="submit">Save Character</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 2. Delete Confirmation Modal -->
+        <div id="delete-confirm-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3>ยืนยันการลบ</h3>
+                <p>คุณต้องการลบตัวละครนี้ใช่หรือไม่?</p>
+                <div class="delete-modal-buttons">
+                    <button id="confirm-delete-btn">ลบ</button>
+                    <button id="cancel-delete-btn">ยกเลิก</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Book View Modal -->
+        <div id="book-view-modal" class="modal-overlay">
+            <!-- เนื้อหาของ Book View สามารถเพิ่มได้ที่นี่ -->
         </div>
     </div>
 
-    <!-- 3. Book View Modal -->
-    <div id="book-view-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <div class="book-container" id="book-container">
-                <div class="book-page book-page-left">
-                    <i class="fas fa-cog book-manage-btn"></i>
-                    <div id="book-profile-content">
-                        <h2 id="book-character-name"></h2>
-                        <img id="book-character-image" src="" alt="Character Image">
-                        <div class="book-custom-fields-container" id="book-custom-fields-container"></div>
-                    </div>
-                    <div id="book-yumeship-content">
-                        <h3>Yumeship</h3>
-                        <div class="yumeship-top-section">
-                            <div class="ship-tag-bubble" id="book-yumeship-tag-bubble">#ชื่อคู่ชิป</div>
-                            <div class="ship-image-display">
-                                <div class="ship-image-circle" id="book-yumeship-img-1"></div>
-                                <i class="fas fa-heart"></i>
-                                <div class="ship-image-circle" id="book-yumeship-img-2"></div>
-                            </div>
-                        </div>
-                        <div class="yumeship-text-box" id="book-yumeship-details"></div>
-                        <div class="music-player">
-                            <div class="music-art" id="book-yumeship-song-art"></div>
-                            <div class="music-info">
-                                <div class="music-title-wrapper">
-                                    <span id="book-yumeship-song-title">(ชื่อเพลง)</span>
-                                </div>
-                                <div class="music-progress-bar">
-                                    <div class="music-progress-fill"></div>
-                                </div>
-                                <div class="music-controls">
-                                    <i class="fas fa-heart"></i>
-                                    <i class="fas fa-backward-step"></i>
-                                    <i class="fas fa-play-circle"></i>
-                                    <i class="fas fa-forward-step"></i>
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="book-page book-page-right" id="book-page-right">
-                    <div id="book-background-content">
-                        <h3>Background Story</h3>
-                        <div class="story-text-box" id="book-background-details"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="book-pagination">
-                <button class="book-page-nav-btn" id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
-                <span id="page-indicator"></span>
-                <button class="book-page-nav-btn" id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
-            </div>
-        </div>
-    </div>
+    <!-- FIREBASE SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
     
+    <!-- IMAGE COMPRESSION LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+
     <script src="script.js"></script>
 </body>
 </html>

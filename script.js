@@ -1,162 +1,312 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ========== ELEMENT SELECTIONS ==========
+
+    // =================================================================
+    // ========== STEP 1: FIREBASE CONFIGURATION =======================
+    // =================================================================
+    // **** วาง `firebaseConfig` ที่คุณคัดลอกจากเว็บไซต์ Firebase ที่นี่ ****
+    const firebaseConfig = {
+  apiKey: "AIzaSyDO9WZq_pEf8UUoV8YQmXDsb6eths1ZSlY",
+  authDomain: "ocxprofile.firebaseapp.com",
+  projectId: "ocxprofile",
+  storageBucket: "ocxprofile.firebasestorage.app",
+  messagingSenderId: "1056463543851",
+  appId: "1:1056463543851:web:4b0eef8cfa3c5bcf25546e",
+  measurementId: "G-5946FF6TWD"
+};
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // =================================================================
+    // ========== ELEMENT SELECTIONS ===================================
+    // =================================================================
+    const authContainer = document.getElementById('auth-container');
+    const appContainer = document.getElementById('app-container');
+    const authForm = document.getElementById('auth-form');
+    const authEmailInput = document.getElementById('auth-email');
+    const passwordGroup = document.getElementById('password-group');
+    const authPasswordInput = document.getElementById('auth-password');
+    const authError = document.getElementById('auth-error');
+    const authSuccess = document.getElementById('auth-success');
+    const loginBtn = document.getElementById('login-btn');
+    const signupBtn = document.getElementById('signup-btn');
+    const resetPasswordBtn = document.getElementById('reset-password-btn');
+    const authToggleLink = document.querySelector('.auth-toggle-link');
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const backToLoginLink = document.querySelector('.back-to-login-link');
+    const authTitle = document.getElementById('auth-title');
+
+    const sidebarUserEmail = document.getElementById('sidebar-user-email');
+    const logoutBtn = document.getElementById('logout-btn');
+    const characterContainer = document.getElementById('character-container');
+    const addCharBtn = document.getElementById('add-char-btn');
+    const toggleEditBtn = document.getElementById('toggle-edit-btn');
     const hamburgerBtn = document.getElementById('hamburger-btn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
-    const addCharBtn = document.getElementById('add-char-btn'), toggleEditBtn = document.getElementById('toggle-edit-btn'), characterContainer = document.getElementById('character-container');
-    const addModal = document.getElementById('add-char-modal'), addModalCloseBtn = addModal.querySelector('.close-btn'), addCharForm = document.getElementById('add-char-form'),
-          modalTitle = document.getElementById('modal-title'), charImageInput = document.getElementById('char-image-input'), imagePreviewBox = document.getElementById('image-preview-box'),
-          firstNameInput = document.getElementById('first-name'), middleNameInput = document.getElementById('middle-name'), lastNameInput = document.getElementById('last-name'),
-          tabButtons = addModal.querySelectorAll('.tab-button'), tabContents = addModal.querySelectorAll('.tab-content'),
-          customFieldsContainer = document.getElementById('custom-fields-container'), addFieldBtn = document.getElementById('add-field-btn'),
-          backgroundStoryInput = document.getElementById('character-background'),
-          enableYumeShipCheck = document.getElementById('enable-yumeship'), yumeShipDetailsText = document.getElementById('yumeship-details'),
-          yumeShipTagInput = document.getElementById('yumeship-tag'), yumeShipImg1Input = document.getElementById('yumeship-img-1-input'),
-          yumeShipImg1Preview = document.getElementById('yumeship-img-1-preview'), yumeShipImg2Input = document.getElementById('yumeship-img-2-input'),
-          yumeShipImg2Preview = document.getElementById('yumeship-img-2-preview'), yumeShipSongArtInput = document.getElementById('yumeship-song-art-input'),
-          yumeShipSongArtPreview = document.getElementById('yumeship-song-art-preview'), yumeShipSongTitleInput = document.getElementById('yumeship-song-title');
-    const deleteModal = document.getElementById('delete-confirm-modal'), confirmDeleteBtn = document.getElementById('confirm-delete-btn'), cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-    const bookModal = document.getElementById('book-view-modal'), bookContainer = document.getElementById('book-container'), bookPageRight = document.getElementById('book-page-right'),
-          bookManageBtn = bookModal.querySelector('.book-manage-btn'),
-          bookProfileContent = document.getElementById('book-profile-content'), bookBackgroundContent = document.getElementById('book-background-content'), bookYumeShipContent = document.getElementById('book-yumeship-content'),
-          bookCharName = document.getElementById('book-character-name'), bookCharImage = document.getElementById('book-character-image'),
-          bookCustomFieldsContainer = document.getElementById('book-custom-fields-container'), bookBackgroundDetails = document.getElementById('book-background-details'),
-          bookYumeShipTagBubble = document.getElementById('book-yumeship-tag-bubble'), bookYumeShipImg1 = document.getElementById('book-yumeship-img-1'),
-          bookYumeShipImg2 = document.getElementById('book-yumeship-img-2'), bookYumeShipDetails = document.getElementById('book-yumeship-details'),
-          bookYumeShipSongArt = document.getElementById('book-yumeship-song-art'), bookYumeShipSongTitle = document.getElementById('book-yumeship-song-title'),
-          prevPageBtn = document.getElementById('prev-page-btn'), nextPageBtn = document.getElementById('next-page-btn'), pageIndicator = document.getElementById('page-indicator');
+    
+    const addModal = document.getElementById('add-char-modal');
+    const addCharForm = document.getElementById('add-char-form');
+    const deleteModal = document.getElementById('delete-confirm-modal');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const imagePreviewBox = document.getElementById('image-preview-box');
 
-    // ========== STATE MANAGEMENT ==========
-    let characters = [], isEditMode = false, currentlyEditingId = null, characterIdToDelete = null, characterIdForBookView = null, currentBookSpread = 0, totalSpreads = 1;
+    // =================================================================
+    // ========== STATE MANAGEMENT =====================================
+    // =================================================================
+    let characters = [];
+    let currentUser = null;
+    let isLoginMode = true;
+    let isResetMode = false;
+    let isEditMode = false;
+    let currentlyEditingId = null;
+    let characterIdToDelete = null;
 
-    // ========== LOCAL STORAGE (with Error Handling) ==========
-    const saveCharacters = () => {
-        try { localStorage.setItem('ocProfileCharacters', JSON.stringify(characters)); } catch (error) { console.error("Error saving to localStorage:", error); alert("ไม่สามารถบันทึกข้อมูลได้ เนื่องจากพื้นที่จัดเก็บอาจเต็ม"); }
+    // =================================================================
+    // ========== AUTHENTICATION LOGIC =================================
+    // =================================================================
+    const updateAuthUI = () => {
+        authError.textContent = '';
+        authSuccess.textContent = '';
+        
+        if (isResetMode) {
+            authTitle.textContent = 'รีเซ็ตรหัสผ่าน';
+            passwordGroup.style.display = 'none';
+            loginBtn.style.display = 'none';
+            signupBtn.style.display = 'none';
+            resetPasswordBtn.style.display = 'block';
+            forgotPasswordLink.style.display = 'none';
+            authToggleLink.style.display = 'none';
+            backToLoginLink.style.display = 'block';
+        } else {
+            authTitle.textContent = isLoginMode ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก';
+            passwordGroup.style.display = 'block';
+            loginBtn.style.display = isLoginMode ? 'block' : 'none';
+            signupBtn.style.display = isLoginMode ? 'none' : 'block';
+            resetPasswordBtn.style.display = 'none';
+            forgotPasswordLink.style.display = 'block';
+
+            authToggleLink.innerHTML = isLoginMode 
+                ? 'ยังไม่มีบัญชี? <a href="#" id="toggle-to-signup">สมัครสมาชิกที่นี่</a>' 
+                : 'มีบัญชีอยู่แล้ว? <a href="#" id="toggle-to-login">เข้าสู่ระบบที่นี่</a>';
+            authToggleLink.style.display = 'block';
+            backToLoginLink.style.display = 'none';
+        }
     };
-    const loadCharacters = () => {
-        const saved = localStorage.getItem('ocProfileCharacters');
-        if (saved) { try { const parsed = JSON.parse(saved); if (Array.isArray(parsed)) { characters = parsed; } else { characters = []; } } catch (e) { console.error("Error parsing localStorage data:", e); characters = []; } } else { characters = []; }
+
+    document.body.addEventListener('click', (e) => {
+        if (e.target.matches('#toggle-to-signup, #toggle-to-signup *')) {
+            e.preventDefault(); isLoginMode = false; isResetMode = false; updateAuthUI();
+        }
+        if (e.target.matches('#toggle-to-login, #toggle-to-login *')) {
+            e.preventDefault(); isLoginMode = true; isResetMode = false; updateAuthUI();
+        }
+        if (e.target.matches('#forgot-password-link, #forgot-password-link *')) {
+            e.preventDefault(); isResetMode = true; updateAuthUI();
+        }
+        if (e.target.matches('#back-to-login-link, #back-to-login-link *')) {
+            e.preventDefault(); isLoginMode = true; isResetMode = false; updateAuthUI();
+        }
+    });
+
+    authForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (isResetMode) return;
+        
+        const email = authEmailInput.value;
+        const password = authPasswordInput.value;
+
+        const action = isLoginMode 
+            ? auth.signInWithEmailAndPassword(email, password)
+            : auth.createUserWithEmailAndPassword(email, password);
+        
+        action.catch(error => {
+            switch (error.code) {
+                case 'auth/user-not-found': authError.textContent = 'ไม่พบผู้ใช้อีเมลนี้'; break;
+                case 'auth/wrong-password': authError.textContent = 'รหัสผ่านไม่ถูกต้อง'; break;
+                case 'auth/email-already-in-use': authError.textContent = 'อีเมลนี้ถูกใช้งานแล้ว'; break;
+                case 'auth/weak-password': authError.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'; break;
+                default: authError.textContent = 'เกิดข้อผิดพลาด: ' + error.message;
+            }
+        });
+    });
+    
+    resetPasswordBtn.addEventListener('click', () => {
+        const email = authEmailInput.value;
+        if (!email) {
+            authError.textContent = 'กรุณากรอกอีเมลของคุณ';
+            return;
+        }
+
+        auth.sendPasswordResetEmail(email)
+            .then(() => {
+                authError.textContent = '';
+                authSuccess.textContent = 'ส่งลิงก์สำเร็จ! กรุณาตรวจสอบกล่องจดหมาย (Inbox) ของคุณ';
+            })
+            .catch(error => {
+                authSuccess.textContent = '';
+                authError.textContent = error.code === 'auth/user-not-found' 
+                    ? 'ไม่พบผู้ใช้อีเมลนี้ในระบบ' 
+                    : 'เกิดข้อผิดพลาด: ' + error.message;
+            });
+    });
+
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        auth.signOut();
+    });
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            isLoginMode = true;
+            isResetMode = false;
+            updateAuthUI();
+            authContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            sidebarUserEmail.textContent = user.email;
+            loadCharacters();
+        } else {
+            currentUser = null;
+            authContainer.style.display = 'flex';
+            appContainer.style.display = 'none';
+            characterContainer.innerHTML = '';
+            characters = [];
+        }
+    });
+
+    // =================================================================
+    // ========== CORE APP FUNCTIONS (WITH IMAGE COMPRESSION) ==========
+    // =================================================================
+    const loadCharacters = async () => {
+        if (!currentUser) return;
+        characterContainer.innerHTML = '<p class="loading-text">กำลังโหลดข้อมูล...</p>';
+        try {
+            const snapshot = await db.collection('characters')
+                                     .where('ownerUID', '==', currentUser.uid)
+                                     .orderBy('createdAt', 'desc')
+                                     .get();
+            characters = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderCharacters();
+        } catch (error) {
+            console.error("Error loading characters: ", error);
+            characterContainer.innerHTML = '<p class="loading-text">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+        }
     };
 
-    // ========== CORE FUNCTIONS ==========
     const renderCharacters = () => {
         characterContainer.innerHTML = '';
+        if (characters.length === 0) {
+            characterContainer.innerHTML = '<p class="loading-text">ยังไม่มีตัวละคร กดเครื่องหมาย + เพื่อสร้าง</p>';
+            return;
+        }
         characters.forEach(char => {
             const card = document.createElement('div');
             card.className = 'character-card';
             card.dataset.id = char.id;
             const fullName = [char.firstName, char.middleName, char.lastName].filter(Boolean).join(' ');
-            card.innerHTML = `<div class="card-overlay-icons"><i class="fas fa-pencil-alt edit-char-btn"></i><i class="fas fa-trash-alt delete-char-btn"></i></div>${char.imageSrc ? `<img src="${char.imageSrc}" alt="${fullName}" class="char-image">` : `<div class="char-image-placeholder"></div>`}<div class="char-name">${fullName || 'Unnamed'}</div>`;
+            const imageHtml = char.imageB64 
+                ? `<img src="${char.imageB64}" alt="${fullName}" class="char-image">` 
+                : `<div class="char-image-placeholder"></div>`;
+            card.innerHTML = `<div class="card-overlay-icons"><i class="fas fa-pencil-alt edit-char-btn"></i><i class="fas fa-trash-alt delete-char-btn"></i></div>${imageHtml}<div class="char-name">${fullName || 'Unnamed'}</div>`;
             characterContainer.appendChild(card);
         });
     };
+
+    addCharForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        const isCreating = !currentlyEditingId;
+        const charId = isCreating ? db.collection('characters').doc().id : currentlyEditingId;
+        
+        let charData = {};
+        const submitButton = addCharForm.querySelector('button[type="submit"]');
+
+        try {
+            submitButton.disabled = true;
+            submitButton.textContent = 'กำลังบันทึก...';
+            
+            if (!isCreating) {
+                const doc = await db.collection('characters').doc(charId).get();
+                if (doc.exists) charData = doc.data();
+            }
+
+            const imageInput = document.getElementById('char-image-input');
+            if (imageInput.files[0]) {
+                const file = imageInput.files[0];
+                
+                const options = {
+                    maxSizeMB: 0.5,
+                    maxWidthOrHeight: 1024,
+                    useWebWorker: true
+                };
+                const compressedFile = await imageCompression(file, options);
+                
+                const base64String = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(compressedFile);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                });
+                charData.imageB64 = base64String;
+            } else if (isCreating) {
+                charData.imageB64 = null;
+            }
+
+            charData.ownerUID = currentUser.uid;
+            charData.firstName = document.getElementById('first-name').value.trim();
+            charData.middleName = document.getElementById('middle-name').value.trim();
+            charData.lastName = document.getElementById('last-name').value.trim();
+            
+            if (isCreating) {
+                charData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            }
+            charData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
+            
+            await db.collection('characters').doc(charId).set(charData, { merge: true });
+
+            currentlyEditingId = null;
+            addCharForm.reset();
+            imagePreviewBox.style.backgroundImage = 'none';
+            imagePreviewBox.innerHTML = '<i class="fas fa-camera"></i><span>Add Photo</span>';
+            await loadCharacters();
+            closeModal(addModal);
+
+        } catch (error) {
+            console.error("Error saving character: ", error);
+            if (error.toString().includes("is larger than 1048576 bytes")) {
+                 alert("เกิดข้อผิดพลาด: รูปภาพมีขนาดใหญ่เกินไปแม้จะบีบอัดแล้ว กรุณาใช้รูปภาพอื่น");
+            } else {
+                 alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.message);
+            }
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Save Character';
+        }
+    });
+
+    confirmDeleteBtn.addEventListener('click', async () => {
+        if (!characterIdToDelete || !currentUser) return;
+        try {
+            await db.collection('characters').doc(characterIdToDelete).delete();
+            characterIdToDelete = null;
+            await loadCharacters();
+            closeModal(deleteModal);
+        } catch (error) {
+            console.error("Error deleting character: ", error);
+            alert("เกิดข้อผิดพลาดในการลบตัวละคร");
+        }
+    });
+
+    // =================================================================
+    // ========== UI & MODAL EVENT LISTENERS ===========================
+    // =================================================================
     const openModal = (modal) => modal.style.display = 'flex';
     const closeModal = (modal) => modal.style.display = 'none';
-    const addCustomFieldInput = (label = '', value = '') => {
-        const div = document.createElement('div');
-        div.className = 'custom-field-pair';
-        div.innerHTML = `<input type="text" placeholder="Label" value="${label}"><input type="text" placeholder="Value" value="${value}"><button type="button" class="remove-field-btn">-</button>`;
-        customFieldsContainer.appendChild(div);
-    };
-    const populateModal = (charId, mode) => {
-        const isCreating = (mode === 'CREATE');
-        const char = isCreating ? {} : characters.find(c => c.id === charId);
-        
-        // This is a safety check for the gear button in case the character is deleted while the book is open.
-        if (!isCreating && !char) return;
 
-        currentlyEditingId = isCreating ? null : charId;
-        modalTitle.textContent = isCreating ? 'Create New Character' : 'Edit Character';
-        
-        // Reset and apply the correct class to the form based on the mode
-        addCharForm.className = '';
-        if (mode === 'PROFILE_ONLY') {
-            addCharForm.classList.add('profile-only-mode');
-        } else if (mode === 'NAME_ONLY' || isCreating) {
-            addCharForm.classList.add('name-only-mode');
-        }
-
-        addCharForm.reset();
-        [imagePreviewBox, yumeShipImg1Preview, yumeShipImg2Preview, yumeShipSongArtPreview].forEach(el => el.style.backgroundImage = 'none');
-        imagePreviewBox.innerHTML = '<i class="fas fa-camera"></i><span>Add Photo</span>';
-        customFieldsContainer.innerHTML = '';
-        
-        if (!isCreating) {
-            if (char.imageSrc) { imagePreviewBox.style.backgroundImage = `url('${char.imageSrc}')`; imagePreviewBox.innerHTML = ''; }
-            firstNameInput.value = char.firstName || '';
-            middleNameInput.value = char.middleName || '';
-            lastNameInput.value = char.lastName || '';
-            if (char.customFields) char.customFields.forEach(f => addCustomFieldInput(f.label, f.value));
-            backgroundStoryInput.value = char.backgroundStory || '';
-            const ys = char.yumeShip || {};
-            enableYumeShipCheck.checked = ys.enabled || false;
-            yumeShipTagInput.value = ys.tag || '';
-            yumeShipDetailsText.value = ys.details || '';
-            yumeShipSongTitleInput.value = ys.songTitle || '';
-            if (ys.img1Src) yumeShipImg1Preview.style.backgroundImage = `url('${ys.img1Src}')`;
-            if (ys.img2Src) yumeShipImg2Preview.style.backgroundImage = `url('${ys.img2Src}')`;
-            if (ys.songArtSrc) yumeShipSongArtPreview.style.backgroundImage = `url('${ys.songArtSrc}')`;
-        }
-        openModal(addModal);
-    };
-    const renderBookContent = () => {
-        const char = characters.find(c => c.id === characterIdForBookView);
-        if (!char) return;
-        
-        [bookProfileContent, bookBackgroundContent, bookYumeShipContent].forEach(el => el.style.display = 'none');
-        bookPageRight.classList.remove('empty');
-
-        if (currentBookSpread === 0) {
-            bookProfileContent.style.display = 'block';
-            bookBackgroundContent.style.display = 'block';
-            bookCharName.textContent = [char.firstName, char.middleName, char.lastName].filter(Boolean).join(' ') || 'Unnamed';
-            bookCharImage.src = char.imageSrc || '';
-            bookCharImage.style.display = char.imageSrc ? 'block' : 'none';
-            bookCustomFieldsContainer.innerHTML = '<h4>Profile Details</h4>';
-            if (char.customFields?.length) {
-                char.customFields.forEach(f => { if (f.label && f.value) bookCustomFieldsContainer.innerHTML += `<div class="book-custom-field"><strong>${f.label}:</strong><span>${f.value}</span></div>`; });
-            } else {
-                bookCustomFieldsContainer.innerHTML += '<p>No details added.</p>';
-            }
-            bookBackgroundDetails.textContent = char.backgroundStory || 'ยังไม่มีการเพิ่มประวัติตัวละคร';
-        } else if (currentBookSpread === 1) {
-            bookYumeShipContent.style.display = 'block';
-            bookPageRight.classList.add('empty');
-            const ys = char.yumeShip || {};
-            bookYumeShipTagBubble.textContent = ys.tag ? `#${ys.tag}` : '#ชื่อคู่ชิป';
-            bookYumeShipImg1.style.backgroundImage = ys.img1Src ? `url('${ys.img1Src}')` : 'none';
-            bookYumeShipImg2.style.backgroundImage = ys.img2Src ? `url('${ys.img2Src}')` : 'none';
-            bookYumeShipDetails.textContent = ys.details || '';
-            bookYumeShipSongArt.style.backgroundImage = ys.songArtSrc ? `url('${ys.songArtSrc}')` : 'none';
-            const songTitle = ys.songTitle || '(ชื่อเพลง)';
-            bookYumeShipSongTitle.textContent = songTitle;
-            const titleWrapper = bookYumeShipSongTitle.parentElement;
-            bookYumeShipSongTitle.classList.remove('scrolling');
-            setTimeout(() => { if (bookYumeShipSongTitle.scrollWidth > titleWrapper.clientWidth) { bookYumeShipSongTitle.classList.add('scrolling'); } }, 50);
-        }
-        pageIndicator.textContent = `Page ${currentBookSpread === 0 ? '1-2' : '3'}`;
-        prevPageBtn.disabled = (currentBookSpread === 0);
-        nextPageBtn.disabled = (currentBookSpread >= totalSpreads - 1);
-    };
-    const openBookView = (charId) => {
-        const char = characters.find(c => c.id === charId);
-        if (!char) return;
-        characterIdForBookView = charId;
-        currentBookSpread = 0;
-        totalSpreads = (char.yumeShip?.enabled) ? 2 : 1;
-        renderBookContent();
-        openModal(bookModal);
-    };
-    const setupImagePreview = (inputEl, previewEl) => {
-        inputEl.addEventListener('change', e => {
-            const file = e.target.files[0];
-            if (file) { const reader = new FileReader(); reader.onload = (event) => { previewEl.style.backgroundImage = `url('${event.target.result}')`; }; reader.readAsDataURL(file); }
-        });
-    };
-
-    // ========== EVENT LISTENERS ==========
-    
-    // Sidebar Toggle
     const toggleSidebar = () => {
         sidebar.classList.toggle('open');
         sidebarOverlay.classList.toggle('open');
@@ -164,82 +314,47 @@ document.addEventListener('DOMContentLoaded', () => {
     hamburgerBtn.addEventListener('click', toggleSidebar);
     sidebarOverlay.addEventListener('click', toggleSidebar);
 
-    setupImagePreview(charImageInput, imagePreviewBox);
-    setupImagePreview(yumeShipImg1Input, yumeShipImg1Preview);
-    setupImagePreview(yumeShipImg2Input, yumeShipImg2Preview);
-    setupImagePreview(yumeShipSongArtInput, yumeShipSongArtPreview);
-    addCharBtn.addEventListener('click', () => populateModal(null, 'CREATE'));
-    toggleEditBtn.addEventListener('click', () => { isEditMode = !isEditMode; characterContainer.classList.toggle('edit-mode', isEditMode); toggleEditBtn.classList.toggle('active', isEditMode); });
-    [addModalCloseBtn, cancelDeleteBtn, bookModal.querySelector('.close-btn')].forEach(btn => { if(btn) btn.addEventListener('click', () => closeModal(btn.closest('.modal-overlay'))); });
-    window.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay') && !e.target.classList.contains('sidebar-overlay')) closeModal(e.target); });
-    bookManageBtn.addEventListener('click', () => { if (characterIdForBookView) populateModal(characterIdForBookView, 'PROFILE_ONLY'); });
-    prevPageBtn.addEventListener('click', () => { if (currentBookSpread > 0) { currentBookSpread--; renderBookContent(); } });
-    nextPageBtn.addEventListener('click', () => { if (currentBookSpread < totalSpreads - 1) { currentBookSpread++; renderBookContent(); } });
-    tabButtons.forEach(button => button.addEventListener('click', () => { tabButtons.forEach(btn => btn.classList.remove('active')); tabContents.forEach(content => content.classList.remove('active')); button.classList.add('active'); document.getElementById(button.dataset.tab).classList.add('active'); }));
-    customFieldsContainer.addEventListener('click', e => { if (e.target.classList.contains('remove-field-btn')) e.target.parentElement.remove(); });
-    addFieldBtn.addEventListener('click', () => addCustomFieldInput());
+    addCharBtn.addEventListener('click', () => {
+        currentlyEditingId = null;
+        addCharForm.reset();
+        imagePreviewBox.style.backgroundImage = 'none';
+        imagePreviewBox.innerHTML = '<i class="fas fa-camera"></i><span>Add Photo</span>';
+        document.getElementById('modal-title').textContent = 'Create New Character';
+        addCharForm.className = 'create-mode';
+        openModal(addModal);
+    });
 
-    characterContainer.addEventListener('click', e => {
+    characterContainer.addEventListener('click', (e) => {
         const card = e.target.closest('.character-card');
         if (!card) return;
         const charId = card.dataset.id;
-        if (isEditMode) {
-            if (e.target.classList.contains('delete-char-btn')) { characterIdToDelete = charId; openModal(deleteModal); }
-            else if (e.target.classList.contains('edit-char-btn')) { populateModal(charId, 'NAME_ONLY'); }
-        } else { openBookView(charId); }
-    });
-    
-    confirmDeleteBtn.addEventListener('click', () => {
-        if (characterIdToDelete) {
-            characters = characters.filter(char => char.id !== characterIdToDelete);
-            saveCharacters(); renderCharacters(); closeModal(deleteModal); characterIdToDelete = null;
-        }
-    });
-
-    addCharForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const isCreating = !currentlyEditingId;
-        const index = isCreating ? -1 : characters.findIndex(c => c.id === currentlyEditingId);
-        let charData = (index !== -1) ? { ...characters[index] } : { id: Date.now().toString() };
         
-        // This part handles saving NAME and IMAGE. It runs unless it's profile-only mode (gear icon).
-        if (!addCharForm.classList.contains('profile-only-mode')) {
-            charData.firstName = firstNameInput.value.trim();
-            charData.middleName = middleNameInput.value.trim();
-            charData.lastName = lastNameInput.value.trim();
-            charData.imageSrc = imagePreviewBox.style.backgroundImage.slice(5, -2).replace(/"/g, "") || null;
+        if (isEditMode) {
+            if (e.target.classList.contains('delete-char-btn')) {
+                characterIdToDelete = charId;
+                openModal(deleteModal);
+            }
+            // Add your quick-edit logic here (e.g., open a simplified modal)
+        } else {
+            // Add your book-view logic here
+            console.log("Open book view for:", charId);
         }
-
-        // This part saves the OTHER DETAILS. It runs unless it's name-only mode (+ or pencil icon).
-        if (!addCharForm.classList.contains('name-only-mode')) {
-            const customFields = [];
-            customFieldsContainer.querySelectorAll('.custom-field-pair').forEach(p => { const l = p.children[0].value.trim(), v = p.children[1].value.trim(); if (l && v) customFields.push({ label: l, value: v }); });
-            charData.customFields = customFields;
-            charData.backgroundStory = backgroundStoryInput.value.trim();
-            charData.yumeShip = {
-                enabled: enableYumeShipCheck.checked,
-                details: yumeShipDetailsText.value.trim(),
-                tag: yumeShipTagInput.value.trim().replace(/^#/, ''),
-                songTitle: yumeShipSongTitleInput.value.trim(),
-                img1Src: yumeShipImg1Preview.style.backgroundImage.slice(5, -2).replace(/"/g, "") || null,
-                img2Src: yumeShipImg2Preview.style.backgroundImage.slice(5, -2).replace(/"/g, "") || null,
-                songArtSrc: yumeShipSongArtPreview.style.backgroundImage.slice(5, -2).replace(/"/g, "") || null,
-            };
-        }
-
-        if (index !== -1) { characters[index] = charData; } else { characters.push(charData); }
-        saveCharacters();
-        renderCharacters();
-        if (bookModal.style.display === 'flex' && currentlyEditingId === characterIdForBookView) {
-            const char = characters.find(c => c.id === characterIdForBookView);
-            totalSpreads = (char.yumeShip?.enabled) ? 2 : 1;
-            if (currentBookSpread >= totalSpreads) currentBookSpread = totalSpreads - 1;
-            renderBookContent();
-        }
-        closeModal(addModal);
     });
 
-    // ========== INITIAL LOAD ==========
-    loadCharacters();
-    renderCharacters();
+    toggleEditBtn.addEventListener('click', () => {
+        isEditMode = !isEditMode;
+        characterContainer.classList.toggle('edit-mode', isEditMode);
+        toggleEditBtn.classList.toggle('active', isEditMode);
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal(modal);
+        });
+        const closeBtn = modal.querySelector('.close-btn, #cancel-delete-btn');
+        if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal));
+    });
+
+    // Initial UI setup
+    updateAuthUI();
 });
