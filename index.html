@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OC x Profile</title>
+    <title data-translate-key="pageTitle">OC x Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -14,120 +14,135 @@
         <div class="auth-modal">
             <h2 id="auth-title">เข้าสู่ระบบ</h2>
             <form id="auth-form">
-                <div class="form-group">
-                    <input type="email" id="auth-email" placeholder="อีเมล" required>
+                <div class="form-group"><input type="email" id="auth-email" required data-translate-placeholder-key="authEmailPlaceholder"></div>
+                <div class="form-group password-wrapper" id="password-group"><input type="password" id="auth-password" required data-translate-placeholder-key="authPasswordPlaceholder"><i class="fas fa-eye-slash" id="toggle-password-visibility"></i></div>
+                <div class="form-group password-wrapper" id="confirm-password-group" style="display: none;"><input type="password" id="auth-confirm-password" required data-translate-placeholder-key="authConfirmPasswordPlaceholder"></div>
+                <div id="password-policy" style="display: none;">
+                    <p data-translate-key="passwordPolicyTitle">รหัสผ่านต้องประกอบด้วย:</p>
+                    <ul>
+                        <li id="policy-length" data-translate-key="policyLength">ความยาวอย่างน้อย 8 ตัวอักษร</li>
+                        <li id="policy-lowercase" data-translate-key="policyLowercase">ตัวพิมพ์เล็ก (a-z)</li>
+                        <li id="policy-uppercase" data-translate-key="policyUppercase">ตัวพิมพ์ใหญ่ (A-Z)</li>
+                        <li id="policy-number" data-translate-key="policyNumber">ตัวเลข (0-9)</li>
+                    </ul>
                 </div>
-                <div class="form-group" id="password-group">
-                    <input type="password" id="auth-password" placeholder="รหัสผ่าน" required>
-                </div>
-                
-                <p class="forgot-password-link"><a href="#" id="forgot-password-link">ลืมรหัสผ่าน?</a></p>
-
+                <p class="forgot-password-link"><a href="#" id="forgot-password-link" data-translate-key="forgotPasswordLink">ลืมรหัสผ่าน?</a></p>
                 <p id="auth-error" class="auth-error"></p>
                 <p id="auth-success" class="auth-success"></p>
-
-                <button type="button" id="login-btn">เข้าสู่ระบบ</button>
-                <button type="button" id="signup-btn" style="display: none;">สมัครสมาชิก</button>
-                <button type="button" id="reset-password-btn" style="display: none;">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
+                <button type="button" id="login-btn" data-translate-key="loginBtn">เข้าสู่ระบบ</button>
+                <button type="button" id="signup-btn" style="display: none;" data-translate-key="signupBtn">สมัครสมาชิก</button>
+                <button type="button" id="reset-password-btn" style="display: none;" data-translate-key="resetPasswordBtn">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
             </form>
-            <p class="auth-toggle-link">ยังไม่มีบัญชี? <a href="#" id="toggle-to-signup">สมัครสมาชิกที่นี่</a></p>
-            <p class="back-to-login-link" style="display: none;"><a href="#" id="back-to-login-link">กลับไปหน้าเข้าสู่ระบบ</a></p>
+            <p class="auth-toggle-link"></p>
+            <p class="back-to-login-link" style="display: none;"><a href="#" id="back-to-login-link" data-translate-key="backToLoginLink">กลับไปหน้าเข้าสู่ระบบ</a></p>
         </div>
     </div>
 
     <!-- ========== MAIN APP CONTAINER (SHOWN WHEN LOGGED IN) ========== -->
     <div id="app-container" style="display: none;">
-        <!-- ========== NAVIGATION BAR ========== -->
         <nav>
             <div class="nav-left"><i class="fas fa-bars" id="hamburger-btn"></i></div>
             <div class="nav-right">
-                <i class="fas fa-pencil-alt" id="toggle-edit-btn"></i>
-                <i class="fas fa-plus" id="add-char-btn"></i>
+                <div id="lang-switch-wrapper" title="Switch Language" data-translate-title-key="tooltipLang">
+                    <i class="fas fa-globe" id="lang-switch-btn"></i>
+                    <span id="lang-indicator"></span>
+                </div>
+                <i class="fas fa-pencil-alt" id="toggle-edit-btn" title="Toggle Edit Mode" data-translate-title-key="tooltipEdit"></i>
+                <i class="fas fa-plus" id="add-char-btn" title="Create New Character" data-translate-title-key="tooltipAdd"></i>
             </div>
         </nav>
-
-        <!-- ========== SIDEBAR ========== -->
         <div class="sidebar" id="sidebar">
-            <div> <!-- Top content wrapper -->
-                <div class="sidebar-header">
-                    <i class="fas fa-user-circle"></i>
-                    <span id="sidebar-user-email">User Profile</span>
-                </div>
+            <div>
+                <div class="sidebar-header"><i class="fas fa-user-circle"></i><span id="sidebar-user-email">User Profile</span></div>
             </div>
-            <div> <!-- Bottom content wrapper -->
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdHEcU5PtZLMZz70pVrZKynPZLSX1RHaPRkYVt0Q76t3-c3qQ/viewform" target="_blank" class="sidebar-link">
-                    <i class="fas fa-comment-alt"></i>
-                    <span>Feedback</span>
-                </a>
-                 <a href="#" id="logout-btn" class="sidebar-link">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>ออกจากระบบ</span>
-                </a>
+            <div>
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdHEcU5PtZLMZz70pVrZKynPZLSX1RHaPRkYVt0Q76t3-c3qQ/viewform" target="_blank" class="sidebar-link"><i class="fas fa-comment-alt"></i><span data-translate-key="feedbackLink">Feedback</span></a>
+                <a href="#" id="logout-btn" class="sidebar-link"><i class="fas fa-sign-out-alt"></i><span data-translate-key="logoutBtn">ออกจากระบบ</span></a>
             </div>
         </div>
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-        <!-- ========== HEADER ========== -->
-        <header><h1>OC x Profile</h1></header>
-
-        <!-- ========== MAIN CONTENT ========== -->
-        <main><div class="character-container" id="character-container"><p class="loading-text">กำลังโหลดข้อมูล...</p></div></main>
+        <header><h1 data-translate-key="mainHeader">OC x Profile</h1></header>
+        <main><div class="character-container" id="character-container"></div></main>
 
         <!-- ========== MODALS ========== -->
-
-        <!-- 1. Add/Edit Modal -->
         <div id="add-char-modal" class="modal-overlay">
             <div class="modal-content">
-                <span class="close-btn">&times;</span>
-                <h2 id="modal-title">Create New Character</h2>
+                <span class="close-btn">&times;</span><h2 id="modal-title">Create New Character</h2>
                 <form id="add-char-form">
                     <div id="name-image-section">
-                        <div class="image-uploader">
-                            <input type="file" id="char-image-input" accept="image/*" style="display: none;">
-                            <label for="char-image-input" class="image-preview" id="image-preview-box"><i class="fas fa-camera"></i><span>Add Photo</span></label>
-                        </div>
-                        <div class="form-group"><input type="text" id="first-name" placeholder="First Name"></div>
-                        <div class="form-group"><input type="text" id="middle-name" placeholder="Middle Name (Optional)"></div>
-                        <div class="form-group"><input type="text" id="last-name" placeholder="Last Name"></div>
+                        <div class="image-uploader"><input type="file" id="char-image-input" accept="image/*" style="display: none;"><label for="char-image-input" class="image-preview" id="image-preview-box"><i class="fas fa-camera"></i><span data-translate-key="addPhoto">Add Photo</span></label></div>
+                        <div class="form-group"><input type="text" id="first-name" data-translate-placeholder-key="firstNamePlaceholder"></div>
+                        <div class="form-group"><input type="text" id="middle-name" data-translate-placeholder-key="middleNamePlaceholder"></div>
+                        <div class="form-group"><input type="text" id="last-name" data-translate-placeholder-key="lastNamePlaceholder"></div>
                     </div>
                     <div class="modal-tab-container">
                         <div class="modal-tabs">
-                            <button type="button" class="tab-button active" data-tab="profile-tab">Profile</button>
-                            <button type="button" class="tab-button" data-tab="yumeship-tab">YumeShip</button>
+                            <button type="button" class="tab-button active" data-tab="profile-tab" data-translate-key="tabProfile">Profile</button>
+                            <button type="button" class="tab-button" data-tab="ocship-tab" data-translate-key="tabOCShip">OC Ship</button>
+                            <button type="button" class="tab-button" data-tab="yumeship-tab" data-translate-key="tabYumeShip">YumeShip</button>
+                            <button type="button" class="tab-button" data-tab="gallery-tab" data-translate-key="tabGallery">Gallery</button>
+                            <button type="button" class="tab-button" data-tab="relationship-tab" data-translate-key="tabRelationship">Relationship</button>
                         </div>
                         <div class="tab-content active" id="profile-tab">
-                            <h4>Profile Details</h4>
+                            <h4 data-translate-key="profileDetailsTitle">Profile Details</h4>
                             <div id="custom-fields-container"></div>
-                            <button type="button" id="add-field-btn">+ Add Detail</button>
-                            <div class="form-group" style="margin-top: 20px;">
-                                <label>Character Background</label>
-                                <textarea id="character-background" placeholder="ใส่ประวัติตัวละครที่นี่..."></textarea>
+                            <button type="button" id="add-field-btn" data-translate-key="addBtn">+ Add</button>
+                            <div class="form-group" style="margin-top: 20px;"><label data-translate-key="charBgLabel">Character Background</label><textarea id="character-background" data-translate-placeholder-key="charBgPlaceholder"></textarea></div>
+                        </div>
+                        <div class="tab-content" id="ocship-tab">
+                            <div class="yumeship-toggle"><label class="switch"><input type="checkbox" id="ocship-enabled"><span class="slider"></span></label><label for="ocship-enabled" data-translate-key="enableOCShip">Enable OC Ship Page</label></div>
+                            <div id="ocship-content-wrapper">
+                                <div class="form-group"><label data-translate-key="shipTagLabel">Ship Tag</label><input type="text" id="ocship-tag" placeholder="#ShipTag"></div>
+                                <div class="form-group"><label data-translate-key="shipImagesLabel">Ship Images</label><div class="ship-image-inputs"><input type="file" id="ocship-img-1" accept="image/*" hidden><label for="ocship-img-1" class="ship-image-preview" id="ocship-img-1-preview"></label><i class="fas fa-heart"></i><input type="file" id="ocship-img-2" accept="image/*" hidden><label for="ocship-img-2" class="ship-image-preview" id="ocship-img-2-preview"></label></div></div>
+                                <div class="form-group"><label data-translate-key="detailsLabel">Details</label><textarea id="ocship-details" data-translate-placeholder-key="describeYumePlaceholder"></textarea></div>
+                                <div class="form-group"><label data-translate-key="themeSongLabel">Theme Song</label><div class="song-input-container"><input type="file" id="ocship-song-art" accept="image/*" hidden><label for="ocship-song-art" class="song-art-preview" id="ocship-song-art-preview"></label><div class="song-title-input"><input type="text" id="ocship-song-title" data-translate-placeholder-key="songTitlePlaceholder"></div></div></div>
                             </div>
                         </div>
                         <div class="tab-content" id="yumeship-tab">
-                            <!-- เนื้อหาของ YumeShip สามารถเพิ่มได้ที่นี่ -->
+                            <div class="yumeship-toggle"><label class="switch"><input type="checkbox" id="yumeship-enabled"><span class="slider"></span></label><label for="yumeship-enabled" data-translate-key="enableYumeShip">Enable YumeShip Page</label></div>
+                            <div id="yumeship-content-wrapper">
+                                <div class="form-group"><label data-translate-key="shipTagLabel">Ship Tag</label><input type="text" id="yumeship-tag" placeholder="#ShipTag"></div>
+                                <div class="form-group"><label data-translate-key="shipImagesLabel">Ship Images</label><div class="ship-image-inputs"><input type="file" id="yumeship-img-1" accept="image/*" hidden><label for="yumeship-img-1" class="ship-image-preview" id="yumeship-img-1-preview"></label><i class="fas fa-heart"></i><input type="file" id="yumeship-img-2" accept="image/*" hidden><label for="yumeship-img-2" class="ship-image-preview" id="yumeship-img-2-preview"></label></div></div>
+                                <div class="form-group"><label data-translate-key="detailsLabel">Details</label><textarea id="yumeship-details" data-translate-placeholder-key="describeYumePlaceholder"></textarea></div>
+                                <div class="form-group"><label data-translate-key="themeSongLabel">Theme Song</label><div class="song-input-container"><input type="file" id="yumeship-song-art" accept="image/*" hidden><label for="yumeship-song-art" class="song-art-preview" id="yumeship-song-art-preview"></label><div class="song-title-input"><input type="text" id="yumeship-song-title" data-translate-placeholder-key="songTitlePlaceholder"></div></div></div>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="gallery-tab">
+                            <h4 data-translate-key="galleryImagesTitle">Gallery Images</h4>
+                            <div class="form-group">
+                                <label for="gallery-input" data-translate-key="uploadImagesLabel">Upload Images (select multiple)</label>
+                                <input type="file" id="gallery-input" accept="image/*" multiple>
+                                <div class="gallery-preview-container" id="gallery-preview-container"></div>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="relationship-tab">
+                            <h4 data-translate-key="relationshipDetailsTitle">Relationship Details</h4>
+                            <div class="form-group">
+                                <label data-translate-key="describeOtherRelsLabel">Describe relationships with other characters</label>
+                                <textarea id="relationship-details" data-translate-placeholder-key="describeOtherRelsPlaceholder"></textarea>
+                            </div>
                         </div>
                     </div>
-                    <button type="submit">Save Character</button>
+                    <button type="submit" data-translate-key="saveCharBtn">Save Character</button>
                 </form>
             </div>
         </div>
-
-        <!-- 2. Delete Confirmation Modal -->
         <div id="delete-confirm-modal" class="modal-overlay">
-            <div class="modal-content">
-                <h3>ยืนยันการลบ</h3>
-                <p>คุณต้องการลบตัวละครนี้ใช่หรือไม่?</p>
-                <div class="delete-modal-buttons">
-                    <button id="confirm-delete-btn">ลบ</button>
-                    <button id="cancel-delete-btn">ยกเลิก</button>
-                </div>
-            </div>
+            <div class="modal-content"><h3 data-translate-key="confirmDeleteTitle">ยืนยันการลบ</h3><p data-translate-key="confirmDeleteMsg">คุณต้องการลบตัวละครนี้ใช่หรือไม่?</p><div class="delete-modal-buttons"><button id="confirm-delete-btn" data-translate-key="deleteBtn">ลบ</button><button id="cancel-delete-btn" data-translate-key="cancelBtn">ยกเลิก</button></div></div>
         </div>
 
-        <!-- 3. Book View Modal -->
         <div id="book-view-modal" class="modal-overlay">
-            <!-- เนื้อหาของ Book View สามารถเพิ่มได้ที่นี่ -->
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <div class="book-container" id="book-container">
+                    <!-- Pages will be dynamically generated here by JS -->
+                </div>
+                <div class="book-pagination">
+                    <button class="book-page-nav-btn" id="prev-page-btn"><i class="fas fa-chevron-left"></i></button>
+                    <span id="page-indicator"></span>
+                    <button class="book-page-nav-btn" id="next-page-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
         </div>
     </div>
 
