@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-translate-key="pageTitle">OC x Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -70,7 +72,7 @@
                 <span class="close-btn">&times;</span><h2 id="modal-title">Create New Character</h2>
                 <form id="add-char-form">
                     <div id="name-image-section">
-                        <div class="image-uploader"><input type="file" id="char-image-input" accept="image/*" style="display: none;"><label for="char-image-input" class="image-preview" id="image-preview-box"><i class="fas fa-camera"></i><span data-translate-key="addPhoto">Add Photo</span></label></div>
+                        <div class="image-uploader"><input type="file" id="char-image-input" class="crop-image-input" accept="image/*" style="display: none;" data-aspect-ratio="0.75"><label for="char-image-input" class="image-preview" id="image-preview-box"><i class="fas fa-camera"></i><span data-translate-key="addPhoto">Add Photo</span></label></div>
                         <div class="form-group"><input type="text" id="first-name" data-translate-placeholder-key="firstNamePlaceholder"></div>
                         <div class="form-group"><input type="text" id="middle-name" data-translate-placeholder-key="middleNamePlaceholder"></div>
                         <div class="form-group"><input type="text" id="last-name" data-translate-placeholder-key="lastNamePlaceholder"></div>
@@ -93,33 +95,49 @@
                             <div class="yumeship-toggle"><label class="switch"><input type="checkbox" id="ocship-enabled"><span class="slider"></span></label><label for="ocship-enabled" data-translate-key="enableOCShip">Enable OC Ship Page</label></div>
                             <div id="ocship-content-wrapper">
                                 <div class="form-group"><label data-translate-key="shipTagLabel">Ship Tag</label><input type="text" id="ocship-tag" placeholder="#ShipTag"></div>
-                                <div class="form-group"><label data-translate-key="shipImagesLabel">Ship Images</label><div class="ship-image-inputs"><input type="file" id="ocship-img-1" accept="image/*" hidden><label for="ocship-img-1" class="ship-image-preview" id="ocship-img-1-preview"></label><i class="fas fa-heart"></i><input type="file" id="ocship-img-2" accept="image/*" hidden><label for="ocship-img-2" class="ship-image-preview" id="ocship-img-2-preview"></label></div></div>
+                                <div class="form-group"><label data-translate-key="shipImagesLabel">Ship Images</label><div class="ship-image-inputs"><input type="file" id="ocship-img-1" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1"><label for="ocship-img-1" class="ship-image-preview" id="ocship-img-1-preview"></label><i class="fas fa-heart"></i><input type="file" id="ocship-img-2" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1"><label for="ocship-img-2" class="ship-image-preview" id="ocship-img-2-preview"></label></div></div>
                                 <div class="form-group"><label data-translate-key="detailsLabel">Details</label><textarea id="ocship-details" data-translate-placeholder-key="describeYumePlaceholder"></textarea></div>
-                                <div class="form-group"><label data-translate-key="themeSongLabel">Theme Song</label><div class="song-input-container"><input type="file" id="ocship-song-art" accept="image/*" hidden><label for="ocship-song-art" class="song-art-preview" id="ocship-song-art-preview"></label><div class="song-title-input"><input type="text" id="ocship-song-title" data-translate-placeholder-key="songTitlePlaceholder"></div></div></div>
+                                <div class="form-group"><label data-translate-key="themeSongLabel">Theme Song</label><div class="song-input-container"><input type="file" id="ocship-song-art" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1"><label for="ocship-song-art" class="song-art-preview" id="ocship-song-art-preview"></label><div class="song-title-input"><input type="text" id="ocship-song-title" data-translate-placeholder-key="songTitlePlaceholder"></div></div></div>
                             </div>
                         </div>
                         <div class="tab-content" id="yumeship-tab">
                             <div class="yumeship-toggle"><label class="switch"><input type="checkbox" id="yumeship-enabled"><span class="slider"></span></label><label for="yumeship-enabled" data-translate-key="enableYumeShip">Enable YumeShip Page</label></div>
                             <div id="yumeship-content-wrapper">
                                 <div class="form-group"><label data-translate-key="shipTagLabel">Ship Tag</label><input type="text" id="yumeship-tag" placeholder="#ShipTag"></div>
-                                <div class="form-group"><label data-translate-key="shipImagesLabel">Ship Images</label><div class="ship-image-inputs"><input type="file" id="yumeship-img-1" accept="image/*" hidden><label for="yumeship-img-1" class="ship-image-preview" id="yumeship-img-1-preview"></label><i class="fas fa-heart"></i><input type="file" id="yumeship-img-2" accept="image/*" hidden><label for="yumeship-img-2" class="ship-image-preview" id="yumeship-img-2-preview"></label></div></div>
+                                <div class="form-group"><label data-translate-key="shipImagesLabel">Ship Images</label><div class="ship-image-inputs"><input type="file" id="yumeship-img-1" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1"><label for="yumeship-img-1" class="ship-image-preview" id="yumeship-img-1-preview"></label><i class="fas fa-heart"></i><input type="file" id="yumeship-img-2" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1"><label for="yumeship-img-2" class="ship-image-preview" id="yumeship-img-2-preview"></label></div></div>
                                 <div class="form-group"><label data-translate-key="detailsLabel">Details</label><textarea id="yumeship-details" data-translate-placeholder-key="describeYumePlaceholder"></textarea></div>
-                                <div class="form-group"><label data-translate-key="themeSongLabel">Theme Song</label><div class="song-input-container"><input type="file" id="yumeship-song-art" accept="image/*" hidden><label for="yumeship-song-art" class="song-art-preview" id="yumeship-song-art-preview"></label><div class="song-title-input"><input type="text" id="yumeship-song-title" data-translate-placeholder-key="songTitlePlaceholder"></div></div></div>
+                                <div class="form-group"><label data-translate-key="themeSongLabel">Theme Song</label><div class="song-input-container"><input type="file" id="yumeship-song-art" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1"><label for="yumeship-song-art" class="song-art-preview" id="yumeship-song-art-preview"></label><div class="song-title-input"><input type="text" id="yumeship-song-title" data-translate-placeholder-key="songTitlePlaceholder"></div></div></div>
                             </div>
                         </div>
                         <div class="tab-content" id="gallery-tab">
                             <h4 data-translate-key="galleryImagesTitle">Gallery Images</h4>
-                            <div class="form-group">
-                                <label for="gallery-input" data-translate-key="uploadImagesLabel">Upload Images (select multiple)</label>
-                                <input type="file" id="gallery-input" accept="image/*" multiple>
-                                <div class="gallery-preview-container" id="gallery-preview-container"></div>
-                            </div>
+                            <div id="gallery-editor-container"></div>
+                            <button type="button" id="add-folder-btn">+ <span data-translate-key="addFolderBtn">Add Folder</span></button>
                         </div>
                         <div class="tab-content" id="relationship-tab">
                             <h4 data-translate-key="relationshipDetailsTitle">Relationship Details</h4>
-                            <div class="form-group">
-                                <label data-translate-key="describeOtherRelsLabel">Describe relationships with other characters</label>
-                                <textarea id="relationship-details" data-translate-placeholder-key="describeOtherRelsPlaceholder"></textarea>
+                            <div id="relationship-editor-container">
+                                <div class="relationship-entry layout-left">
+                                    <div class="relationship-image-uploader">
+                                        <input type="file" id="relationship-img-1" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1">
+                                        <label for="relationship-img-1" class="image-preview-square" id="relationship-img-1-preview"><i class="fas fa-camera"></i></label>
+                                    </div>
+                                    <textarea id="relationship-details-1" data-translate-placeholder-key="describeOtherRelsPlaceholder"></textarea>
+                                </div>
+                                <div class="relationship-entry layout-right">
+                                    <div class="relationship-image-uploader">
+                                        <input type="file" id="relationship-img-2" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1">
+                                        <label for="relationship-img-2" class="image-preview-square" id="relationship-img-2-preview"><i class="fas fa-camera"></i></label>
+                                    </div>
+                                    <textarea id="relationship-details-2" data-translate-placeholder-key="describeOtherRelsPlaceholder"></textarea>
+                                </div>
+                                <div class="relationship-entry layout-left">
+                                    <div class="relationship-image-uploader">
+                                        <input type="file" id="relationship-img-3" class="crop-image-input" accept="image/*" hidden data-aspect-ratio="1">
+                                        <label for="relationship-img-3" class="image-preview-square" id="relationship-img-3-preview"><i class="fas fa-camera"></i></label>
+                                    </div>
+                                    <textarea id="relationship-details-3" data-translate-placeholder-key="describeOtherRelsPlaceholder"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -144,6 +162,27 @@
                 </div>
             </div>
         </div>
+
+        <div id="crop-modal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 data-translate-key="cropImageTitle">Crop Image</h3>
+                <div class="crop-image-container">
+                    <img id="image-to-crop">
+                </div>
+                <div class="delete-modal-buttons">
+                    <button id="confirm-crop-btn" data-translate-key="confirmBtn">Confirm</button>
+                    <button id="cancel-crop-btn" data-translate-key="cancelBtn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="gallery-view-modal" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h3 id="gallery-modal-title"></h3>
+                <div id="gallery-modal-grid"></div>
+            </div>
+        </div>
     </div>
 
     <!-- FIREBASE SDKs -->
@@ -152,8 +191,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-storage-compat.js"></script>
     
-    <!-- IMAGE COMPRESSION LIBRARY -->
+    <!-- IMAGE COMPRESSION & CROPPER LIBRARIES -->
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
     <script src="script.js"></script>
 </body>

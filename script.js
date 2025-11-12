@@ -4,15 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== FIREBASE CONFIGURATION ===============================
     // =================================================================
     const firebaseConfig = {
-    apiKey: "AIzaSyDO9WZq_pEf8UUoV8YQmXDsb6eths1ZSlY",
-    authDomain: "ocxprofile.firebaseapp.com",
-    projectId: "ocxprofile",
-    storageBucket: "ocxprofile.firebasestorage.app",
-    messagingSenderId: "1056463543851",
-    appId: "1:1056463543851:web:4b0eef8cfa3c5bcf25546e",
-    measurementId: "G-5946FF6TWD"
-    };
-
+  apiKey: "AIzaSyDO9WZq_pEf8UUoV8YQmXDsb6eths1ZSlY",
+  authDomain: "ocxprofile.firebaseapp.com",
+  projectId: "ocxprofile",
+  storageBucket: "ocxprofile.firebasestorage.app",
+  messagingSenderId: "1056463543851",
+  appId: "1:1056463543851:web:4b0eef8cfa3c5bcf25546e",
+  measurementId: "G-5946FF6TWD"
+};
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -59,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addCharForm = document.getElementById('add-char-form');
     const customFieldsContainer = document.getElementById('custom-fields-container');
     const addFieldBtn = document.getElementById('add-field-btn');
-    const tabButtons = addModal.querySelectorAll('.tab-button');
+    const tabButtons = addModal.querySelector('.modal-tabs');
     const tabContents = addModal.querySelectorAll('.tab-content');
     const imagePreviewBox = document.getElementById('image-preview-box');
     
@@ -67,31 +66,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const ocshipEnabledCheckbox = document.getElementById('ocship-enabled');
     const ocshipContentWrapper = document.getElementById('ocship-content-wrapper');
     const ocshipTagInput = document.getElementById('ocship-tag');
-    const ocshipImg1Input = document.getElementById('ocship-img-1');
-    const ocshipImg1Preview = document.getElementById('ocship-img-1-preview');
-    const ocshipImg2Input = document.getElementById('ocship-img-2');
-    const ocshipImg2Preview = document.getElementById('ocship-img-2-preview');
     const ocshipDetailsInput = document.getElementById('ocship-details');
-    const ocshipSongArtInput = document.getElementById('ocship-song-art');
-    const ocshipSongArtPreview = document.getElementById('ocship-song-art-preview');
     const ocshipSongTitleInput = document.getElementById('ocship-song-title');
     
     // YumeShip Elements
     const yumeshipEnabledCheckbox = document.getElementById('yumeship-enabled');
     const yumeshipContentWrapper = document.getElementById('yumeship-content-wrapper');
     const yumeshipTagInput = document.getElementById('yumeship-tag');
-    const yumeshipImg1Input = document.getElementById('yumeship-img-1');
-    const yumeshipImg1Preview = document.getElementById('yumeship-img-1-preview');
-    const yumeshipImg2Input = document.getElementById('yumeship-img-2');
-    const yumeshipImg2Preview = document.getElementById('yumeship-img-2-preview');
     const yumeshipDetailsInput = document.getElementById('yumeship-details');
-    const yumeshipSongArtInput = document.getElementById('yumeship-song-art');
-    const yumeshipSongArtPreview = document.getElementById('yumeship-song-art-preview');
     const yumeshipSongTitleInput = document.getElementById('yumeship-song-title');
     
-    const galleryInput = document.getElementById('gallery-input');
-    const galleryPreviewContainer = document.getElementById('gallery-preview-container');
-    const relationshipDetailsInput = document.getElementById('relationship-details');
+    // Gallery Elements
+    const galleryEditorContainer = document.getElementById('gallery-editor-container');
+    const addFolderBtn = document.getElementById('add-folder-btn');
+    const galleryViewModal = document.getElementById('gallery-view-modal');
+    const galleryModalTitle = document.getElementById('gallery-modal-title');
+    const galleryModalGrid = document.getElementById('gallery-modal-grid');
+    
     const deleteModal = document.getElementById('delete-confirm-modal');
     const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
 
@@ -100,6 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevPageBtn = document.getElementById('prev-page-btn');
     const nextPageBtn = document.getElementById('next-page-btn');
     const pageIndicator = document.getElementById('page-indicator');
+
+    // Cropper Elements
+    const cropModal = document.getElementById('crop-modal');
+    const imageToCrop = document.getElementById('image-to-crop');
+    const confirmCropBtn = document.getElementById('confirm-crop-btn');
 
     // =================================================================
     // ========== STATE MANAGEMENT =====================================
@@ -116,8 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let characterIdForBookView = null;
     let currentBookSpread = 0;
     let activeBookPages = [];
-    let galleryFilesState = { existing: [], toAdd: [] };
+    let galleryState = [];
     let currentLanguage = localStorage.getItem('preferredLanguage') || 'th';
+    let cropper = null;
+    let croppingTarget = {};
+    let croppedImageData = {};
 
     // =================================================================
     // ========== TRANSLATION & LANGUAGE ===============================
@@ -143,13 +142,13 @@ document.addEventListener('DOMContentLoaded', () => {
             tabProfile: "โปรไฟล์", tabOCShip: "โอซีชิป", tabYumeShip: "ยูเมะชิป", tabGallery: "แกลเลอรี่", tabRelationship: "ความสัมพันธ์",
             profileDetailsTitle: "รายละเอียดโปรไฟล์", addBtn: "+ เพิ่ม",
             charBgLabel: "ประวัติตัวละคร", charBgPlaceholder: "ใส่ประวัติตัวละครที่นี่...",
-            enableOCShip: "เปิดใช้งานหน้า OC Ship", shipNameLabel: "ชื่อชิป", shipNamePlaceholder: "ชื่อชิป (เช่น A x B)",
+            enableOCShip: "เปิดใช้งานหน้าโอซีชิป", shipNameLabel: "ชื่อชิป", shipNamePlaceholder: "ชื่อชิป (เช่น A x B)",
             detailsLabel: "รายละเอียด", describeRelPlaceholder: "อธิบายความสัมพันธ์...",
-            enableYumeShip: "เปิดใช้งานหน้า YumeShip", shipTagLabel: "แท็กชิป", shipImagesLabel: "รูปภาพชิป",
+            enableYumeShip: "เปิดใช้งานหน้ายูเมะชิป", shipTagLabel: "แท็กชิป", shipImagesLabel: "รูปภาพชิป",
             describeYumePlaceholder: "อธิบายความสัมพันธ์, เรื่องราว, โมเมนต์, ฯลฯ...",
             themeSongLabel: "เพลงประจำตัว", songTitlePlaceholder: "ชื่อเพลง",
-            galleryImagesTitle: "รูปภาพแกลเลอรี่", uploadImagesLabel: "อัปโหลดรูปภาพ (เลือกได้หลายรูป)",
-            relationshipDetailsTitle: "รายละเอียดความสัมพันธ์", describeOtherRelsLabel: "อธิบายความสัมพันธ์กับตัวละครอื่น", describeOtherRelsPlaceholder: "เช่น เพื่อนสนิทกับ C, คู่แข่งกับ D...",
+            galleryImagesTitle: "รูปภาพแกลเลอรี่", uploadImagesLabel: "อัปโหลดรูปภาพ", addFolderBtn: "เพิ่มโฟลเดอร์", folderNamePlaceholder: "ชื่อโฟลเดอร์",
+            relationshipDetailsTitle: "รายละเอียดความสัมพันธ์", describeOtherRelsPlaceholder: "อธิบายความสัมพันธ์...",
             saveCharBtn: "บันทึกตัวละคร", savingBtn: "กำลังบันทึก...",
             confirmDeleteTitle: "ยืนยันการลบ", confirmDeleteMsg: "คุณต้องการลบตัวละครนี้ใช่หรือไม่?",
             deleteBtn: "ลบ", cancelBtn: "ยกเลิก",
@@ -157,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltipBookEdit: "แก้ไขโปรไฟล์ตัวละคร",
             bookHeaderProfile: "รายละเอียดโปรไฟล์", bookHeaderBackground: "ประวัติตัวละคร", bookHeaderOCShip: "โอซีชิป", bookHeaderYumeShip: "ยูเมะชิป", bookHeaderGallery: "แกลเลอรี่", bookHeaderRelationship: "ความสัมพันธ์",
             noDetailsAdded: "ไม่มีรายละเอียด", unnamedChar: "ไม่มีชื่อ", noSongTitle: "(ไม่มีชื่อเพลง)", noBackgroundStory: "ยังไม่ได้เพิ่มประวัติตัวละคร",
+            cropImageTitle: "ตัดรูปภาพ", confirmBtn: "ยืนยัน",
         },
         en: {
             pageTitle: "OC x Profile",
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             enableYumeShip: "Enable YumeShip Page", shipTagLabel: "Ship Tag", shipImagesLabel: "Ship Images",
             describeYumePlaceholder: "Describe the relationship, story, moments, etc...",
             themeSongLabel: "Theme Song", songTitlePlaceholder: "Song Title",
-            galleryImagesTitle: "Gallery Images", uploadImagesLabel: "Upload Images (select multiple)",
+            galleryImagesTitle: "Gallery Images", uploadImagesLabel: "Upload Images", addFolderBtn: "Add Folder", folderNamePlaceholder: "Folder Name",
             relationshipDetailsTitle: "Relationship Details", describeOtherRelsLabel: "Describe relationships with other characters", describeOtherRelsPlaceholder: "e.g., Best friends with C, Rivals with D...",
             saveCharBtn: "Save Character", savingBtn: "Saving...",
             confirmDeleteTitle: "Confirm Deletion", confirmDeleteMsg: "Are you sure you want to delete this character?",
@@ -192,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltipBookEdit: "Edit Character Profile",
             bookHeaderProfile: "Profile Details", bookHeaderBackground: "Background Story", bookHeaderOCShip: "OC Ship", bookHeaderYumeShip: "YumeShip", bookHeaderGallery: "Gallery", bookHeaderRelationship: "Relationship",
             noDetailsAdded: "No details added.", unnamedChar: "Unnamed", noSongTitle: "(No Title)", noBackgroundStory: "No background story added.",
+            cropImageTitle: "Crop Image", confirmBtn: "Confirm",
         }
     };
 
@@ -277,11 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentlyEditingId = charId;
         addCharForm.className = ''; addCharForm.reset();
-        [imagePreviewBox, ocshipImg1Preview, ocshipImg2Preview, ocshipSongArtPreview, yumeshipImg1Preview, yumeshipImg2Preview, yumeshipSongArtPreview].forEach(el => { el.style.backgroundImage = 'none'; });
+        document.querySelectorAll('.image-preview, .ship-image-preview, .song-art-preview, .image-preview-square').forEach(el => el.style.backgroundImage = 'none');
         imagePreviewBox.innerHTML = `<i class="fas fa-camera"></i><span data-translate-key="addPhoto">${translations[currentLanguage].addPhoto}</span>`;
         customFieldsContainer.innerHTML = '';
-        galleryPreviewContainer.innerHTML = '';
-        galleryFilesState = { existing: char.galleryB64 || [], toAdd: [] };
+        galleryEditorContainer.innerHTML = '';
+        galleryState = [];
+        croppedImageData = {};
 
         if (mode === 'name-only-mode') { addCharForm.classList.add('name-only-mode'); } 
         else if (mode === 'profile-only-mode') { addCharForm.classList.add('profile-only-mode'); }
@@ -303,9 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ocshipTagInput.value = os.tag || '';
             ocshipDetailsInput.value = os.details || '';
             ocshipSongTitleInput.value = os.songTitle || '';
-            if(os.img1B64) ocshipImg1Preview.style.backgroundImage = `url('${os.img1B64}')`;
-            if(os.img2B64) ocshipImg2Preview.style.backgroundImage = `url('${os.img2B64}')`;
-            if(os.songArtB64) ocshipSongArtPreview.style.backgroundImage = `url('${os.songArtB64}')`;
+            if(os.img1B64) document.getElementById('ocship-img-1-preview').style.backgroundImage = `url('${os.img1B64}')`;
+            if(os.img2B64) document.getElementById('ocship-img-2-preview').style.backgroundImage = `url('${os.img2B64}')`;
+            if(os.songArtB64) document.getElementById('ocship-song-art-preview').style.backgroundImage = `url('${os.songArtB64}')`;
 
             const ys = char.yumeship || {};
             yumeshipEnabledCheckbox.checked = ys.enabled || false;
@@ -313,28 +315,46 @@ document.addEventListener('DOMContentLoaded', () => {
             yumeshipTagInput.value = ys.tag || '';
             yumeshipDetailsInput.value = ys.details || '';
             yumeshipSongTitleInput.value = ys.songTitle || '';
-            if(ys.img1B64) yumeshipImg1Preview.style.backgroundImage = `url('${ys.img1B64}')`;
-            if(ys.img2B64) yumeshipImg2Preview.style.backgroundImage = `url('${ys.img2B64}')`;
-            if(ys.songArtB64) yumeshipSongArtPreview.style.backgroundImage = `url('${ys.songArtB64}')`;
+            if(ys.img1B64) document.getElementById('yumeship-img-1-preview').style.backgroundImage = `url('${ys.img1B64}')`;
+            if(ys.img2B64) document.getElementById('yumeship-img-2-preview').style.backgroundImage = `url('${ys.img2B64}')`;
+            if(ys.songArtB64) document.getElementById('yumeship-song-art-preview').style.backgroundImage = `url('${ys.songArtB64}')`;
             
-            galleryFilesState.existing.forEach((imgB64, index) => {
-                const item = document.createElement('div');
-                item.className = 'gallery-preview-item';
-                item.innerHTML = `<img src="${imgB64}"><span class="gallery-delete-btn" data-index="${index}">&times;</span>`;
-                galleryPreviewContainer.appendChild(item);
-            });
-
-            relationshipDetailsInput.value = char.relationshipDetails || '';
+            if (char.relationships && Array.isArray(char.relationships)) {
+                for(let i=0; i<3; i++){
+                    if(char.relationships[i]) {
+                        document.getElementById(`relationship-details-${i+1}`).value = char.relationships[i].details || '';
+                        if(char.relationships[i].imgB64) {
+                            document.getElementById(`relationship-img-${i+1}-preview`).style.backgroundImage = `url('${char.relationships[i].imgB64}')`;
+                        }
+                    }
+                }
+            }
+            
+            if (char.gallery && Array.isArray(char.gallery)) {
+                char.gallery.forEach(folder => addFolderToEditor(folder));
+            }
         }
         
         setLanguage(currentLanguage);
         openModal(addModal);
     };
 
-    const fileToBase64 = async (file) => {
-        if (!file) return null;
+    const dataURItoBlob = (dataURI) => {
+        const byteString = atob(dataURI.split(',')[1]);
+        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ab], { type: mimeString });
+    };
+
+    const compressImage = async (fileOrDataUrl) => {
+        if (!fileOrDataUrl) return null;
+        const blob = (typeof fileOrDataUrl === 'string') ? dataURItoBlob(fileOrDataUrl) : fileOrDataUrl;
         const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1024, useWebWorker: false, initialQuality: 0.7 };
-        const compressedFile = await imageCompression(file, options);
+        const compressedFile = await imageCompression(blob, options);
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(compressedFile);
@@ -362,9 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 charData.firstName = document.getElementById('first-name').value.trim();
                 charData.middleName = document.getElementById('middle-name').value.trim();
                 charData.lastName = document.getElementById('last-name').value.trim();
-                const imageInput = document.getElementById('char-image-input');
-                if (imageInput.files[0]) { charData.imageB64 = await fileToBase64(imageInput.files[0]); } 
-                else if (isCreating) { charData.imageB64 = null; }
+                charData.imageB64 = croppedImageData.charimageinput ? await compressImage(croppedImageData.charimageinput) : (charData.imageB64 || null);
             }
 
             if (formMode !== 'name-only-mode') {
@@ -382,9 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     tag: ocshipTagInput.value.trim(),
                     details: ocshipDetailsInput.value.trim(),
                     songTitle: ocshipSongTitleInput.value.trim(),
-                    img1B64: ocshipImg1Input.files[0] ? await fileToBase64(ocshipImg1Input.files[0]) : (charData.ocship?.img1B64 || null),
-                    img2B64: ocshipImg2Input.files[0] ? await fileToBase64(ocshipImg2Input.files[0]) : (charData.ocship?.img2B64 || null),
-                    songArtB64: ocshipSongArtInput.files[0] ? await fileToBase64(ocshipSongArtInput.files[0]) : (charData.ocship?.songArtB64 || null),
+                    img1B64: croppedImageData.ocshipimg1 ? await compressImage(croppedImageData.ocshipimg1) : (charData.ocship?.img1B64 || null),
+                    img2B64: croppedImageData.ocshipimg2 ? await compressImage(croppedImageData.ocshipimg2) : (charData.ocship?.img2B64 || null),
+                    songArtB64: croppedImageData.ocshipsongart ? await compressImage(croppedImageData.ocshipsongart) : (charData.ocship?.songArtB64 || null),
                 };
 
                 charData.yumeship = {
@@ -392,16 +410,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     tag: yumeshipTagInput.value.trim(),
                     details: yumeshipDetailsInput.value.trim(),
                     songTitle: yumeshipSongTitleInput.value.trim(),
-                    img1B64: yumeshipImg1Input.files[0] ? await fileToBase64(yumeshipImg1Input.files[0]) : (charData.yumeship?.img1B64 || null),
-                    img2B64: yumeshipImg2Input.files[0] ? await fileToBase64(yumeshipImg2Input.files[0]) : (charData.yumeship?.img2B64 || null),
-                    songArtB64: yumeshipSongArtInput.files[0] ? await fileToBase64(yumeshipSongArtInput.files[0]) : (charData.yumeship?.songArtB64 || null),
+                    img1B64: croppedImageData.yumeshipimg1 ? await compressImage(croppedImageData.yumeshipimg1) : (charData.yumeship?.img1B64 || null),
+                    img2B64: croppedImageData.yumeshipimg2 ? await compressImage(croppedImageData.yumeshipimg2) : (charData.yumeship?.img2B64 || null),
+                    songArtB64: croppedImageData.yumeshipsongart ? await compressImage(croppedImageData.yumeshipsongart) : (charData.yumeship?.songArtB64 || null),
                 };
+
+                charData.relationships = [];
+                for (let i = 0; i < 3; i++) {
+                    const details = document.getElementById(`relationship-details-${i+1}`).value.trim();
+                    const key = `relationshipimg${i+1}`;
+                    const existingImg = charData.relationships && charData.relationships[i] ? charData.relationships[i].imgB64 : null;
+                    const imgB64 = croppedImageData[key] ? await compressImage(croppedImageData[key]) : (existingImg || null);
+                    if (details || imgB64) {
+                        charData.relationships[i] = { details, imgB64 };
+                    } else {
+                        charData.relationships[i] = null;
+                    }
+                }
                 
-                const newImagePromises = galleryFilesState.toAdd.map(file => fileToBase64(file));
-                const newImagesB64 = await Promise.all(newImagePromises);
-                charData.galleryB64 = galleryFilesState.existing.filter(img => img !== null).concat(newImagesB64);
-                
-                charData.relationshipDetails = relationshipDetailsInput.value.trim();
+                charData.gallery = [];
+                for (const folderState of galleryState) {
+                    const name = document.querySelector(`[data-folder-id="${folderState.id}"] .gallery-folder-name-input`).value.trim();
+                    const existingImages = folderState.images;
+                    const newImagePromises = folderState.newFiles.map(file => compressImage(file));
+                    const newImages = await Promise.all(newImagePromises);
+                    charData.gallery.push({ name, images: existingImages.concat(newImages) });
+                }
             }
 
             charData.ownerUID = currentUser.uid;
@@ -413,10 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (bookModal.style.display === 'flex' && currentlyEditingId === characterIdForBookView) { renderBookContent(); }
             
             closeModal(addModal);
-            currentlyEditingId = null;
-            addCharForm.reset();
-            imagePreviewBox.innerHTML = `<i class="fas fa-camera"></i><span data-translate-key="addPhoto">${translations[currentLanguage].addPhoto}</span>`;
-
+            
         } catch (error) {
             console.error("Error saving character: ", error);
             alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.message);
@@ -437,8 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
         activeBookPages = ['profile', 'background'];
         if (char.ocship?.enabled) activeBookPages.push('ocship');
         if (char.yumeship?.enabled) activeBookPages.push('yumeship');
-        if (char.galleryB64?.length > 0) activeBookPages.push('gallery');
-        if (char.relationshipDetails) activeBookPages.push('relationship');
+        if (char.gallery?.some(f => f.images.length > 0)) activeBookPages.push('gallery');
+        if (char.relationships?.some(r => r && (r.details || r.imgB64))) activeBookPages.push('relationship');
         
         const totalSpreads = Math.ceil(activeBookPages.length / 2);
         const leftPageType = activeBookPages[currentBookSpread * 2];
@@ -455,7 +486,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!pageType) return '';
             const shipPageTemplate = (ship, type) => {
                 const header = type === 'oc' ? dict.bookHeaderOCShip : dict.bookHeaderYumeShip;
-                const songTitleId = `book-${type}ship-song-title`;
                 return `<div>
                     <h3>${header}</h3>
                     <div class="yumeship-top-section">
@@ -470,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="music-player">
                         <div class="music-art" style="background-image: ${ship.songArtB64 ? `url('${ship.songArtB64}')` : 'none'}"></div>
                         <div class="music-info">
-                            <div class="music-title-wrapper"><span id="${songTitleId}">${ship.songTitle || dict.noSongTitle}</span></div>
+                            <div class="music-title-wrapper"><span>${ship.songTitle || dict.noSongTitle}</span></div>
                             <div class="music-progress-bar"><div class="music-progress-fill"></div></div>
                             <div class="music-controls"><i class="fas fa-heart"></i><i class="fas fa-backward-step"></i><i class="fas fa-play-circle"></i><i class="fas fa-forward-step"></i><i class="fas fa-clock"></i></div>
                         </div>
@@ -489,10 +519,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 case 'yumeship':
                     return shipPageTemplate(char.yumeship, 'yume');
                 case 'gallery':
-                    const galleryHtml = char.galleryB64.map(imgB64 => `<img src="${imgB64}">`).join('');
-                    return `<div><h3>${dict.bookHeaderGallery}</h3><div class="book-gallery-grid">${galleryHtml}</div></div>`;
+                    let galleryHtml = `<div class="book-gallery-container">`;
+                    char.gallery.forEach((folder, index) => {
+                        if (folder.images.length > 0) {
+                            galleryHtml += `
+                                <div class="book-gallery-folder-item" data-folder-index="${index}">
+                                    <span class="folder-name">${folder.name || dict.unnamedChar}</span>
+                                </div>`;
+                        }
+                    });
+                    galleryHtml += `</div>`;
+                    return `<div><h3>${dict.bookHeaderGallery}</h3>${galleryHtml}</div>`;
                 case 'relationship':
-                    return `<div><h3>${dict.bookHeaderRelationship}</h3><div class="story-text-box">${char.relationshipDetails || dict.noDetailsAdded}</div></div>`;
+                    let relHtml = `<div class="book-relationship-container">`;
+                    char.relationships.forEach((rel, index) => {
+                        if (rel && (rel.details || rel.imgB64)) {
+                            const layout = index === 1 ? 'layout-right' : 'layout-left';
+                            relHtml += `<div class="book-relationship-entry ${layout}">
+                                <img src="${rel.imgB64 || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='}" style="display: ${rel.imgB64 ? 'block' : 'none'}">
+                                <div class="details">${rel.details || ''}</div>
+                            </div>`;
+                        }
+                    });
+                    relHtml += `</div>`;
+                    return `<div><h3>${dict.bookHeaderRelationship}</h3>${relHtml}</div>`;
                 default: return '';
             }
         };
@@ -509,7 +559,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         setTimeout(() => {
             const songTitles = bookContainer.querySelectorAll('.music-title-wrapper span');
-            songTitles.forEach(title => title.classList.add('scrolling'));
+            songTitles.forEach(titleEl => {
+                const wrapperEl = titleEl.parentElement;
+                if (titleEl.scrollWidth > wrapperEl.clientWidth) {
+                    const speed = 40;
+                    const duration = titleEl.scrollWidth / speed;
+                    titleEl.style.animationDuration = `${duration}s`;
+                    titleEl.classList.add('scrolling');
+                } else {
+                    titleEl.classList.remove('scrolling');
+                    titleEl.style.animationDuration = ''; 
+                }
+            });
         }, 500);
         
         pageIndicator.textContent = dict.bookPageIndicator(currentBookSpread + 1, totalSpreads);
@@ -523,11 +584,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== UI & MODAL EVENT LISTENERS ===========================
     // =================================================================
     const openModal = (modal) => modal.style.display = 'flex';
-    const closeModal = (modal) => modal.style.display = 'none';
+    const closeModal = (modal) => {
+        modal.style.display = 'none';
+        if (modal === cropModal && cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    };
+    
     const toggleSidebar = () => { sidebar.classList.toggle('open'); sidebarOverlay.classList.toggle('open'); };
     hamburgerBtn.addEventListener('click', toggleSidebar);
     sidebarOverlay.addEventListener('click', toggleSidebar);
-    addCharBtn.addEventListener('click', () => { currentlyEditingId = null; addCharForm.reset(); customFieldsContainer.innerHTML = ''; galleryPreviewContainer.innerHTML = ''; galleryFilesState = { existing: [], toAdd: [] }; imagePreviewBox.style.backgroundImage = 'none'; imagePreviewBox.innerHTML = `<i class="fas fa-camera"></i><span data-translate-key="addPhoto">${translations[currentLanguage].addPhoto}</span>`; addCharForm.className = 'create-mode'; yumeshipContentWrapper.classList.remove('disabled'); ocshipContentWrapper.classList.remove('disabled'); setLanguage(currentLanguage); openModal(addModal); });
+    addCharBtn.addEventListener('click', () => { 
+        currentlyEditingId = null; 
+        addCharForm.reset(); 
+        customFieldsContainer.innerHTML = ''; 
+        galleryEditorContainer.innerHTML = '';
+        galleryState = [];
+        croppedImageData = {};
+        document.querySelectorAll('.image-preview, .ship-image-preview, .song-art-preview, .image-preview-square').forEach(el => {
+            el.style.backgroundImage = 'none';
+            if (el.querySelector('i')) el.style.display = 'flex';
+        });
+        imagePreviewBox.innerHTML = `<i class="fas fa-camera"></i><span data-translate-key="addPhoto">${translations[currentLanguage].addPhoto}</span>`; 
+        addCharForm.className = 'create-mode'; 
+        yumeshipContentWrapper.classList.remove('disabled'); 
+        ocshipContentWrapper.classList.remove('disabled'); 
+        setLanguage(currentLanguage); 
+        openModal(addModal); 
+    });
     
     characterContainer.addEventListener('click', (e) => {
         const card = e.target.closest('.character-card');
@@ -542,51 +627,187 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     toggleEditBtn.addEventListener('click', () => { isEditMode = !isEditMode; characterContainer.classList.toggle('edit-mode', isEditMode); toggleEditBtn.classList.toggle('active', isEditMode); });
-    document.querySelectorAll('.modal-overlay').forEach(modal => { modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal); }); const closeBtn = modal.querySelector('.close-btn, #cancel-delete-btn'); if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal)); });
+    document.querySelectorAll('.modal-overlay').forEach(modal => { modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal); }); });
+    document.querySelectorAll('.close-btn, #cancel-delete-btn, #cancel-crop-btn').forEach(btn => { btn.addEventListener('click', () => closeModal(btn.closest('.modal-overlay'))); });
     
-    const setupImagePreview = (inputEl, previewEl) => { inputEl.addEventListener('change', e => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (event) => { previewEl.style.backgroundImage = `url('${event.target.result}')`; }; reader.readAsDataURL(file); } }); };
-    setupImagePreview(document.getElementById('char-image-input'), imagePreviewBox);
-    setupImagePreview(ocshipImg1Input, ocshipImg1Preview);
-    setupImagePreview(ocshipImg2Input, ocshipImg2Preview);
-    setupImagePreview(ocshipSongArtInput, ocshipSongArtPreview);
-    setupImagePreview(yumeshipImg1Input, yumeshipImg1Preview);
-    setupImagePreview(yumeshipImg2Input, yumeshipImg2Preview);
-    setupImagePreview(yumeshipSongArtInput, yumeshipSongArtPreview);
-    
-    bookContainer.addEventListener('click', (e) => { if(e.target.classList.contains('book-manage-btn')) { if (characterIdForBookView) { populateModal(characterIdForBookView, 'profile-only-mode'); } } });
+    bookContainer.addEventListener('click', (e) => { 
+        if(e.target.classList.contains('book-manage-btn')) { 
+            if (characterIdForBookView) { populateModal(characterIdForBookView, 'profile-only-mode'); } 
+        }
+        const folderItem = e.target.closest('.book-gallery-folder-item');
+        if (folderItem) {
+            const char = characters.find(c => c.id === characterIdForBookView);
+            const folderIndex = parseInt(folderItem.dataset.folderIndex, 10);
+            const folder = char.gallery[folderIndex];
+            if (folder) {
+                galleryModalTitle.textContent = folder.name || translations[currentLanguage].unnamedChar;
+                galleryModalGrid.innerHTML = folder.images.map(img => `<img src="${img}">`).join('');
+                openModal(galleryViewModal);
+            }
+        }
+    });
     prevPageBtn.addEventListener('click', () => { if (currentBookSpread > 0) { currentBookSpread--; renderBookContent(); } });
     nextPageBtn.addEventListener('click', () => { const totalSpreads = Math.ceil(activeBookPages.length / 2); if (currentBookSpread < totalSpreads - 1) { currentBookSpread++; renderBookContent(); } });
 
-    tabButtons.forEach(button => { button.addEventListener('click', () => { tabButtons.forEach(btn => btn.classList.remove('active')); tabContents.forEach(content => content.classList.remove('active')); button.classList.add('active'); document.getElementById(button.dataset.tab).classList.add('active'); }); });
+    tabButtons.querySelectorAll('.tab-button').forEach(button => { button.addEventListener('click', () => { tabButtons.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active')); tabContents.forEach(content => content.classList.remove('active')); button.classList.add('active'); document.getElementById(button.dataset.tab).classList.add('active'); }); });
     addFieldBtn.addEventListener('click', () => addCustomFieldInput());
     customFieldsContainer.addEventListener('click', (e) => { if (e.target.classList.contains('remove-field-btn')) { e.target.parentElement.remove(); } });
     ocshipEnabledCheckbox.addEventListener('change', () => { ocshipContentWrapper.classList.toggle('disabled', !ocshipEnabledCheckbox.checked); });
     yumeshipEnabledCheckbox.addEventListener('change', () => { yumeshipContentWrapper.classList.toggle('disabled', !yumeshipEnabledCheckbox.checked); });
     
-    galleryInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files);
-        galleryFilesState.toAdd = galleryFilesState.toAdd.concat(files);
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const item = document.createElement('div');
-                item.className = 'gallery-preview-item';
-                item.innerHTML = `<img src="${event.target.result}" data-new="true"><span class="gallery-delete-btn">&times;</span>`;
-                galleryPreviewContainer.appendChild(item);
+    // CROPPER LOGIC
+    const openCropper = (file, targetInfo) => {
+        croppingTarget = targetInfo;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imageToCrop.src = e.target.result;
+            openModal(cropModal);
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(imageToCrop, {
+                aspectRatio: targetInfo.aspectRatio,
+                viewMode: 1,
+                background: false,
+                autoCropArea: 0.9,
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    document.querySelectorAll('.crop-image-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const targetInfo = {
+                previewEl: document.getElementById(`${input.id}-preview`) || imagePreviewBox,
+                dataKey: input.id.replace(/-/g, ''),
+                aspectRatio: parseFloat(input.dataset.aspectRatio) || 1,
             };
-            reader.readAsDataURL(file);
+            openCropper(file, targetInfo);
+            e.target.value = '';
         });
     });
 
-    galleryPreviewContainer.addEventListener('click', (e) => {
+    confirmCropBtn.addEventListener('click', () => {
+        if (!cropper) return;
+        const croppedData = cropper.getCroppedCanvas({
+            width: 512,
+            height: 512 / cropper.options.aspectRatio,
+            imageSmoothingQuality: 'high',
+        }).toDataURL('image/jpeg', 0.9);
+        
+        croppedImageData[croppingTarget.dataKey] = croppedData;
+        croppingTarget.previewEl.style.backgroundImage = `url('${croppedData}')`;
+        if (croppingTarget.dataKey === 'charimageinput') {
+            croppingTarget.previewEl.innerHTML = '';
+        }
+        
+        closeModal(cropModal);
+    });
+
+    // DRAGGABLE TABS LOGIC
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    tabButtons.addEventListener('mousedown', (e) => {
+        isDown = true;
+        tabButtons.classList.add('grabbing');
+        startX = e.pageX - tabButtons.offsetLeft;
+        scrollLeft = tabButtons.scrollLeft;
+    });
+    tabButtons.addEventListener('mouseleave', () => {
+        isDown = false;
+        tabButtons.classList.remove('grabbing');
+    });
+    tabButtons.addEventListener('mouseup', () => {
+        isDown = false;
+        tabButtons.classList.remove('grabbing');
+    });
+    tabButtons.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - tabButtons.offsetLeft;
+        const walk = (x - startX) * 2;
+        tabButtons.scrollLeft = scrollLeft - walk;
+    });
+
+    // GALLERY FOLDER LOGIC
+    const addFolderToEditor = (folder = { name: '', images: [] }) => {
+        const folderId = `folder-${Date.now()}-${Math.random()}`;
+        const newFolderState = { id: folderId, name: folder.name, images: [...folder.images], newFiles: [] };
+        galleryState.push(newFolderState);
+
+        const folderDiv = document.createElement('div');
+        folderDiv.className = 'gallery-folder-editor';
+        folderDiv.dataset.folderId = folderId;
+
+        const imageInputId = `gallery-input-${folderId}`;
+        const previewContainerId = `gallery-preview-${folderId}`;
+
+        folderDiv.innerHTML = `
+            <div class="gallery-folder-header">
+                <input type="text" class="gallery-folder-name-input" placeholder="${translations[currentLanguage].folderNamePlaceholder}" value="${folder.name}">
+                <button type="button" class="remove-field-btn remove-folder-btn">-</button>
+            </div>
+            <label for="${imageInputId}" class="gallery-folder-image-input-label" data-translate-key="uploadImagesLabel">${translations[currentLanguage].uploadImagesLabel}</label>
+            <input type="file" id="${imageInputId}" class="gallery-folder-image-input" accept="image/*" multiple hidden>
+            <div class="gallery-preview-container" id="${previewContainerId}"></div>
+        `;
+        
+        galleryEditorContainer.appendChild(folderDiv);
+        const previewContainer = folderDiv.querySelector('.gallery-preview-container');
+        folder.images.forEach((imgB64, index) => {
+            const item = document.createElement('div');
+            item.className = 'gallery-preview-item';
+            item.innerHTML = `<img src="${imgB64}" data-existing-index="${index}"><span class="gallery-delete-btn">&times;</span>`;
+            previewContainer.appendChild(item);
+        });
+    };
+
+    addFolderBtn.addEventListener('click', () => addFolderToEditor());
+
+    galleryEditorContainer.addEventListener('click', (e) => {
+        const folderDiv = e.target.closest('.gallery-folder-editor');
+        if (!folderDiv) return;
+        const folderState = galleryState.find(f => f.id === folderDiv.dataset.folderId);
+
+        if (e.target.classList.contains('remove-folder-btn')) {
+            galleryState = galleryState.filter(f => f.id !== folderDiv.dataset.folderId);
+            folderDiv.remove();
+        }
         if (e.target.classList.contains('gallery-delete-btn')) {
-            const item = e.target.parentElement;
+            const item = e.target.closest('.gallery-preview-item');
             const img = item.querySelector('img');
-            if (!img.dataset.new) {
-                const index = parseInt(e.target.dataset.index, 10);
-                galleryFilesState.existing[index] = null;
+
+            if (img.dataset.fileIndex !== undefined) {
+                folderState.newFiles[parseInt(img.dataset.fileIndex, 10)] = null;
+            } else if (img.dataset.existingIndex !== undefined) {
+                folderState.images[parseInt(img.dataset.existingIndex, 10)] = null;
             }
             item.remove();
+        }
+    });
+
+    galleryEditorContainer.addEventListener('change', (e) => {
+        if (e.target.classList.contains('gallery-folder-image-input')) {
+            const folderDiv = e.target.closest('.gallery-folder-editor');
+            const folderState = galleryState.find(f => f.id === folderDiv.dataset.folderId);
+            const previewContainer = folderDiv.querySelector('.gallery-preview-container');
+            
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const fileIndex = folderState.newFiles.length;
+                folderState.newFiles.push(file);
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-preview-item';
+                    item.innerHTML = `<img src="${event.target.result}" data-file-index="${fileIndex}"><span class="gallery-delete-btn">&times;</span>`;
+                    previewContainer.appendChild(item);
+                };
+                reader.readAsDataURL(file);
+            });
         }
     });
 
